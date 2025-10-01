@@ -1,12 +1,12 @@
 let state = {
   pokedex: [],
   collection: [],
-  candies: {}
+  candies: {},
+  items: {} // agora inclui mega stones
 };
 let currentEncounter = null;
 const shinyChance = 0.001;
 
-// garante carregamento inicial
 document.addEventListener("DOMContentLoaded", () => {
   showTab("explore");
   showSubTab("db-kanto");
@@ -64,6 +64,7 @@ function tryCatch(){
     const iv={atk:randIV(),def:randIV(),sta:randIV()};
     const entry={
       id:"c"+Date.now(),
+      base: currentEncounter.name.split(" ")[0],
       name:currentEncounter.name,
       rarity:currentEncounter.rarity,
       img:currentEncounter.img,
@@ -73,9 +74,8 @@ function tryCatch(){
       capturedAt:new Date().toLocaleString()
     };
     state.collection.push(entry);
-    const base=currentEncounter.name.split(" ")[0];
-    state.candies[base]=(state.candies[base]||0)+3;
-    save();renderCollection();
+    state.candies[entry.base]=(state.candies[entry.base]||0)+3;
+    save();renderCollection();renderItems();
     res.innerHTML="✨ Capturado!";
   } else res.innerHTML="💨 Escapou!";
   currentEncounter=null;
@@ -146,13 +146,48 @@ function showAllForms(dex){
 
 function showDetails(id){
   const c=state.collection.find(x=>x.id===id); if(!c) return;
+  const base = c.base;
+  const candies = state.candies[base]||0;
   document.getElementById("dName").innerText=c.name+(c.shiny?" ⭐":"");
   document.getElementById("dImg").src=c.shiny&&c.imgShiny?c.imgShiny:c.img;
+
   let info=`<div>Raridade: ${c.rarity}</div>`;
   info+=`<div>IVs: Atk ${c.iv.atk} • Def ${c.iv.def} • Sta ${c.iv.sta}</div>`;
+  info+=`<div>Doces: ${candies}</div>`;
+  
+  // botão Transferir
+  info+=`<div><button onclick="transferPokemon('${c.id}')">Transferir</button></div>`;
+  
   document.getElementById("dInfo").innerHTML=info;
   document.getElementById("detailModal").style.display="flex";
 }
+
+function transferPokemon(id){
+  const idx = state.collection.findIndex(x=>x.id===id);
+  if(idx>-1){
+    const p = state.collection[idx];
+    const base = p.base;
+    state.collection.splice(idx,1);
+    state.candies[base]=(state.candies[base]||0)+1;
+    save();renderCollection();renderItems();
+    closeDetails();
+    alert(p.name+" transferido! +1 doce");
+  }
+}
+
 function closeDetails(){document.getElementById("detailModal").style.display="none";}
 
-load();renderCollection();
+// render itens da Bag (Mega Stones etc.)
+function renderItems(){
+  const box=document.getElementById("items"); if(!box) return;
+  box.innerHTML="";
+  if(Object.keys(state.items).length===0){
+    box.innerHTML="Nenhum item.";
+    return;
+  }
+  for(let k in state.items){
+    box.innerHTML+=`<div>${k}: ${state.items[k]}</div>`;
+  }
+}
+
+load();renderCollection();renderItems();

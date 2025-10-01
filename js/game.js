@@ -6,7 +6,7 @@ let state = {
 let currentEncounter = null;
 const shinyChance = 0.001;
 
-// inicia mostrando Explorar e carrega Kanto
+// garante carregamento inicial
 document.addEventListener("DOMContentLoaded", () => {
   showTab("explore");
   showSubTab("db-kanto");
@@ -93,22 +93,19 @@ function renderCollection(){
   });
 }
 
-// 🔥 Database em grade (10 por linha, só forma normal)
+// Database em grid 10 por linha
 function renderPokedex(region){
   const box=document.querySelector(`#db-${region} .list`);
   if(!box) return;
   box.innerHTML='';
   
-  // ordenar por número dex
   const sorted = [...state.pokedex].sort((a,b) => (a.dex||9999) - (b.dex||9999));
 
-  // criar grid
   box.style.display="grid";
   box.style.gridTemplateColumns="repeat(10, 1fr)";
   box.style.gap="10px";
   box.style.textAlign="center";
 
-  // evitar duplicados
   const shown = [];
   sorted.forEach(p=>{
     if(p.form==="normal" && !shown.includes(p.dex)){
@@ -125,7 +122,6 @@ function renderPokedex(region){
   });
 }
 
-// 🔥 Mostrar todas as formas no modal
 function showAllForms(dex){
   const forms = state.pokedex.filter(p=>p.dex===dex);
   if(forms.length===0) return;
@@ -143,7 +139,7 @@ function showAllForms(dex){
       </div>
     `;
   });
-  document.getElementById('dImg').src=forms[0].img; // placeholder
+  document.getElementById('dImg').src=forms[0].img;
   document.getElementById('dInfo').innerHTML=html;
   document.getElementById('detailModal').style.display='flex';
 }

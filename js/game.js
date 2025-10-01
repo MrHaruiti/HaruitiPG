@@ -6,13 +6,8 @@ let state = {
 let currentEncounter = null;
 const shinyChance = 0.001; // 0.1%
 
-// carregar pokedex.json
-fetch("data/pokedex.json")
-  .then(r => r.json())
-  .then(data => {
-    state.pokedex = data;
-    renderPokedex();
-  });
+// carregar região inicial
+loadRegion("kanto");
 
 function save() { localStorage.setItem('pk_state', JSON.stringify(state)); }
 function load() { let s = localStorage.getItem('pk_state'); if(s) state = JSON.parse(s); }
@@ -26,9 +21,34 @@ function showTab(t){
 function showSubTab(id){
   document.querySelectorAll('.subtab').forEach(el=>el.style.display='none');
   document.getElementById(id).style.display='block';
+
+  // se for sub-aba Database, carregar região correspondente
+  if(id.startsWith("db-")){
+    const region = id.replace("db-","");
+    loadRegion(region);
+  }
+}
+
+function loadRegion(region){
+  let file = "data/pokedex-" + region + ".json";
+  fetch(file)
+    .then(r => r.json())
+    .then(data => {
+      state.pokedex = data;
+      renderPokedex(region);
+    })
+    .catch(err => {
+      console.warn("Nenhum arquivo para região:", region, err);
+      state.pokedex = [];
+      document.querySelector(`#db-${region} .list`)?.replaceChildren();
+    });
 }
 
 function explore(){
+  if(state.pokedex.length===0){
+    document.getElementById('exploreResult').innerHTML="Nenhum Pokémon nesta região ainda.";
+    return;
+  }
   const p=state.pokedex[Math.floor(Math.random()*state.pokedex.length)];
   currentEncounter={...p};
   currentEncounter.shiny=Math.random()<shinyChance;
@@ -84,8 +104,9 @@ function renderCollection(){
   });
 }
 
-function renderPokedex(){
-  const box=document.getElementById('pokedexList');
+function renderPokedex(region){
+  const box=document.querySelector(`#db-${region} .list`);
+  if(!box) return;
   box.innerHTML='';
   state.pokedex.forEach(p=>{
     let shinySprite = p.imgShiny ? `<img class="sprite" src="${p.imgShiny}" title="Shiny"/>` : "";
@@ -117,3 +138,36 @@ function showDetails(id){
       info+=`<div>Precisa de ${need} 🍬 para evoluir</div>`;
     }
   }
+  info+=`<button onclick="transfer('${c.id}')">Transferir → +1 🍬</button>`;
+  info+=`<div>Capturado em: ${c.capturedAt}</div>`;
+  document.getElementById('dInfo').innerHTML=info;
+  document.getElementById('detailModal').style.display='flex';
+}
+function closeDetails(){document.getElementById('detailModal').style.display='none';}
+
+function evolve(id){
+  const c=state.collection.find(x=>x.id===id);if(!c||!c.evolution)return;
+  const base=c.name.split(" ")[0];
+  const cost=c.evolution.cost;
+  if((state.candies[base]||0)>=cost){
+    state.candies[base]-=cost;
+    c.name=c.evolution.to;
+    c.evolution=null;
+    save();renderCollection();closeDetails();
+    alert("Evoluiu para "+c.name+"!");
+  }
+}
+
+function transfer(id){
+  const i = state.collection.findIndex(x => x.id === id);
+  if(i >= 0){
+    const c = state.collection[i];
+    const base = c.name.split(" ")[0];
+    state.candies[base] = (state.candies[base]||0) + 1;
+    state.collection.splice(i,1);
+    save(); renderCollection(); closeDetails();
+    alert(c.name+" foi transferido! Você ganhou +1 🍬");
+  }
+}
+
+load();renderCollection();showTab('explore');

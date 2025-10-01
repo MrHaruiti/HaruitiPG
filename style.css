@@ -1,120 +1,99 @@
-/* Reset básico */
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #121212;
-  color: #f0f0f0;
-}
-
-h1, h2 {
-  margin: 0 0 10px;
-  color: #ffd84d;
-}
-
-header {
-  background: #1f1f1f;
-  padding: 10px;
-  text-align: center;
-  border-bottom: 2px solid #333;
-}
-
-nav button {
-  background: #333;
-  border: none;
-  color: #fff;
-  padding: 8px 12px;
-  margin: 0 5px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-nav button.active, nav button:hover {
-  background: #ffd84d;
-  color: #000;
-}
-
-.wrap {
-  padding: 15px;
-}
-
-.card {
-  background: #1e1e1e;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 15px;
-}
-
-.subnav {
-  margin-bottom: 10px;
-}
-
-.subnav button {
-  background: #444;
-  color: #fff;
-  margin-right: 5px;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.subnav button:hover {
-  background: #666;
-}
-
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #2a2a2a;
-  padding: 6px;
-  border-radius: 6px;
-}
-
-.item.clickable {
-  cursor: pointer;
-}
-
-.item.clickable:hover {
-  background: #3a3a3a;
-}
-
-.sprite {
-  width: 48px;
-  height: 48px;
-  image-rendering: pixelated;
-}
-
-#exploreResult {
-  margin-top: 10px;
-  padding: 10px;
-  background: #2a2a2a;
-  border-radius: 6px;
-  text-align: center;
-}
-
-/* Modal */
-#detailModal div {
-  text-align: center;
-}
-
-#detailModal button {
-  margin-top: 10px;
-  background: #ffd84d;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-#detailModal button:hover {
-  background: #ffea95;
-}
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/style.css b/style.css
+index a72af17171b62ceb0f7849c48bad07ef47ac3f1b..15fc8ce8bfe63b4eb5cacc2f25d395767c1e2704 100644
+--- a/style.css
++++ b/style.css
+@@ -79,42 +79,88 @@ nav button.active, nav button:hover {
+ }
+ 
+ .item.clickable {
+   cursor: pointer;
+ }
+ 
+ .item.clickable:hover {
+   background: #3a3a3a;
+ }
+ 
+ .sprite {
+   width: 48px;
+   height: 48px;
+   image-rendering: pixelated;
+ }
+ 
+ #exploreResult {
+   margin-top: 10px;
+   padding: 10px;
+   background: #2a2a2a;
+   border-radius: 6px;
+   text-align: center;
+ }
+ 
+ /* Modal */
+-#detailModal div {
++#detailModal {
++  display: none;
++  position: fixed;
++  top: 0;
++  left: 0;
++  width: 100%;
++  height: 100%;
++  background: rgba(0, 0, 0, 0.7);
++  z-index: 100;
++  align-items: center;
++  justify-content: center;
++}
++
++#detailModal .modal-box {
++  background: #171a2e;
++  border: 1px solid #263058;
++  border-radius: 12px;
++  padding: 16px;
++  max-width: 500px;
++  width: 90%;
++  color: #fff;
+   text-align: center;
+ }
+ 
++#detailModal .modal-sprite {
++  width: 96px;
++  height: 96px;
++  image-rendering: pixelated;
++}
++
+ #detailModal button {
+-  margin-top: 10px;
+   background: #ffd84d;
+   border: none;
+   padding: 8px 12px;
+   border-radius: 6px;
+   font-weight: bold;
+   cursor: pointer;
++  transition: background 0.2s ease;
+ }
+ 
+ #detailModal button:hover {
+   background: #ffea95;
+ }
++
++#detailModal .modal-actions {
++  display: flex;
++  justify-content: center;
++  gap: 10px;
++  margin-top: 12px;
++  flex-wrap: wrap;
++}
++
++#detailModal .modal-actions button {
++  margin-top: 0;
++}
++
++#detailModal button.danger {
++  background: #ff5b5b;
++}
++
++#detailModal button.danger:hover {
++  background: #ff7d7d;
++}
+ 
+EOF
+)

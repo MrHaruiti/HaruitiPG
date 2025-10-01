@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pokémon Fangame</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Pokémon Fangame</h1>
+  <nav>
+    <button onclick="showTab('explore')">Explorar</button>
+    <button onclick="showTab('battle')">Batalha</button>
+    <button onclick="showTab('bag')">Bag</button>
+    <button onclick="showTab('pokedex')">Pokédex</button>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section id="tab-explore" class="tab">
+    <div class="card">
+      <h2>🌍 Exploração</h2>
+      <button onclick="explore()">Explorar</button>
+      <div id="exploreResult"></div>
+    </div>
+  </section>
+
+  <section id="tab-battle" class="tab" style="display:none">
+    <div class="card"><h2>⚔️ Batalha</h2><div>Em breve...</div></div>
+  </section>
+
+  <section id="tab-bag" class="tab" style="display:none">
+    <div class="subnav">
+      <button onclick="showSubTab('bag-pokemon')">Pokémon</button>
+      <button onclick="showSubTab('bag-itens')">Itens</button>
+    </div>
+    <div id="bag-pokemon" class="subtab">
+      <div class="card"><h2>📦 Coleção</h2><div id="collection" class="list"></div></div>
+    </div>
+    <div id="bag-itens" class="subtab" style="display:none">
+      <div class="card"><h2>🎒 Itens</h2><div id="items">Nenhum item ainda.</div></div>
+    </div>
+  </section>
+
+  <section id="tab-pokedex" class="tab" style="display:none">
+    <div class="card"><h2>📖 Pokédex cadastrada</h2><div id="pokedexList" class="list"></div></div>
+  </section>
+</main>
+
+<!-- Modal Detalhes -->
+<div id="detailModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;">
+  <div style="background:#171a2e;border:1px solid #263058;border-radius:12px;padding:16px;max-width:500px;width:90%;color:#fff">
+    <h2 id="dName"></h2>
+    <img id="dImg" style="width:96px;height:96px;image-rendering:pixelated"/><br>
+    <div id="dInfo"></div>
+    <button onclick="closeDetails()">Fechar</button>
+  </div>
+</div>
+
+<script src="js/game.js"></script>
+</body>
+</html>

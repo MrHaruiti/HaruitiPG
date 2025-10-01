@@ -67,7 +67,7 @@
     <div id="db-hoenn" class="subtab" style="display:none"><div class="card"><h2>Hoenn</h2>Em breve...</div></div>
     <div id="db-sinnoh" class="subtab" style="display:none"><div class="card"><h2>Sinnoh</h2>Em breve...</div></div>
     <div id="db-unova" class="subtab" style="display:none"><div class="card"><h2>Unova</h2>Em breve...</div></div>
-    <div id="db-kalos" class="subtab" style="display:none"><div class="card"><h2>Kalos</h2>Em breve...</div></div>
+    <div id="db-kalos" class="subtab" style="display:none"><div a class="card"><h2>Kalos</h2>Em breve...</div></div>
     <div id="db-alola" class="subtab" style="display:none"><div class="card"><h2>Alola</h2>Em breve...</div></div>
     <div id="db-galar" class="subtab" style="display:none"><div class="card"><h2>Galar</h2>Em breve...</div></div>
     <div id="db-paldea" class="subtab" style="display:none"><div class="card"><h2>Paldea</h2>Em breve...</div></div>
@@ -75,13 +75,15 @@
 </main>
 
 <!-- Modal Detalhes -->
-<div id="detailModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;">
-  <div style="background:#171a2e;border:1px solid #263058;border-radius:12px;padding:16px;max-width:500px;width:90%;color:#fff">
+<div id="detailModal">
+  <div class="modal-box">
     <h2 id="dName"></h2>
-    <img id="dImg" style="width:96px;height:96px;image-rendering:pixelated"/><br>
+    <img id="dImg" class="modal-sprite"/><br>
     <div id="dInfo"></div>
-    <button onclick="closeDetails()">Fechar</button>
+    <div class="modal-actions">
+      <button id="transferBtn" class="danger" onclick="transferSelected()">Transferir</button>
+      <button onclick="closeDetails()">Fechar</button>
+    </div>
   </div>
 </div>
 

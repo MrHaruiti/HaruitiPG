@@ -1,0 +1,120 @@
+/* Reset básico */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #121212;
+  color: #f0f0f0;
+}
+
+h1, h2 {
+  margin: 0 0 10px;
+  color: #ffd84d;
+}
+
+header {
+  background: #1f1f1f;
+  padding: 10px;
+  text-align: center;
+  border-bottom: 2px solid #333;
+}
+
+nav button {
+  background: #333;
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  margin: 0 5px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+nav button.active, nav button:hover {
+  background: #ffd84d;
+  color: #000;
+}
+
+.wrap {
+  padding: 15px;
+}
+
+.card {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.subnav {
+  margin-bottom: 10px;
+}
+
+.subnav button {
+  background: #444;
+  color: #fff;
+  margin-right: 5px;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.subnav button:hover {
+  background: #666;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2a2a2a;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.item.clickable {
+  cursor: pointer;
+}
+
+.item.clickable:hover {
+  background: #3a3a3a;
+}
+
+.sprite {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}
+
+#exploreResult {
+  margin-top: 10px;
+  padding: 10px;
+  background: #2a2a2a;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Modal */
+#detailModal div {
+  text-align: center;
+}
+
+#detailModal button {
+  margin-top: 10px;
+  background: #ffd84d;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#detailModal button:hover {
+  background: #ffea95;
+}

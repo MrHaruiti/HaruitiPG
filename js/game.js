@@ -114,6 +114,8 @@ function showDetails(id){
       info+=`<div>Precisa de ${need} 🍬 para evoluir</div>`;
     }
   }
+  // botão de transferir
+  info+=`<button onclick="transfer('${c.id}')">Transferir → +1 🍬</button>`;
   info+=`<div>Capturado em: ${c.capturedAt}</div>`;
   document.getElementById('dInfo').innerHTML=info;
   document.getElementById('detailModal').style.display='flex';
@@ -130,6 +132,18 @@ function evolve(id){
     c.evolution=null;
     save();renderCollection();closeDetails();
     alert("Evoluiu para "+c.name+"!");
+  }
+}
+
+function transfer(id){
+  const i = state.collection.findIndex(x => x.id === id);
+  if(i >= 0){
+    const c = state.collection[i];
+    const base = c.name.split(" ")[0];
+    state.candies[base] = (state.candies[base]||0) + 1;
+    state.collection.splice(i,1); // remove da coleção
+    save(); renderCollection(); closeDetails();
+    alert(c.name+" foi transferido! Você ganhou +1 🍬");
   }
 }
 

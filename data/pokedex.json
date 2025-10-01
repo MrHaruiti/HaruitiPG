@@ -1,49 +1,48 @@
-[
-  {
-    "name": "Bulbasaur",
-    "rarity": "Comum",
-    "baseCatch": 75,
-    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur.png",
-    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur.png",
-    "evolution": { "to": "Ivysaur", "cost": 25 }
-  },
-  {
-    "name": "Bulbasaur (Pikachu Cap)",
-    "rarity": "Incomum",
-    "baseCatch": 40,
-    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-pikachu-cap.png",
-    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-pikachu-cap.png"
-  },
-  {
-    "name": "Bulbasaur (Red Party Hat)",
-    "rarity": "Incomum",
-    "baseCatch": 35,
-    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-red-party-hat.png",
-    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-red-party-hat.png"
-  },
-  {
-    "name": "Bulbasaur (Shedinja Costume)",
-    "rarity": "Incomum",
-    "baseCatch": 25,
-    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-shedinja.png",
-    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-shedinja.png"
-  },
-  {
-    "name": "Ivysaur",
-    "rarity": "Incomum",
-    "baseCatch": 50,
-    "img": "https://img.pokemondb.net/sprites/go/normal/ivysaur.png",
-    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/ivysaur.png",
-    "evolution": { "to": "Venusaur", "cost": 100 }
-  },
-  {
-    "name": "Ivysaur (Red Party Hat)",
-    "rarity": "Incomum",
-    "baseCatch": 35,
-    "img": "https://img.pokemondb.net/sprites/go/normal/ivysaur-red-party-hat.png",
-    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/ivysaur-red-party-hat.png"
-  },
-  {
+{
+  "name": "Bulbasaur",
+  "rarity": "Comum",
+  "baseCatch": 75,
+  "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur.png",
+  "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur.png",
+  "evolution": { "to": "Ivysaur", "cost": 25 }
+},
+{
+  "name": "Bulbasaur (Pikachu Cap)",
+  "rarity": "Incomum",
+  "baseCatch": 75,
+  "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-pikachu-cap.png",
+  "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-pikachu-cap.png"
+},
+{
+  "name": "Bulbasaur (Red Party Hat)",
+  "rarity": "Incomum",
+  "baseCatch": 75,
+  "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-red-party-hat.png",
+  "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-red-party-hat.png"
+},
+{
+  "name": "Bulbasaur (Shedinja Costume)",
+  "rarity": "Incomum",
+  "baseCatch": 75,
+  "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-shedinja.png",
+  "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-shedinja.png"
+},
+{
+  "name": "Ivysaur",
+  "rarity": "Comum",
+  "baseCatch": 50,
+  "img": "https://img.pokemondb.net/sprites/go/normal/ivysaur.png",
+  "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/ivysaur.png",
+  "evolution": { "to": "Venusaur (Normal - Male)", "cost": 100 }
+},
+{
+  "name": "Ivysaur (Red Party Hat)",
+  "rarity": "Incomum",
+  "baseCatch": 50,
+  "img": "https://img.pokemondb.net/sprites/go/normal/ivysaur-red-party-hat.png",
+  "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/ivysaur-red-party-hat.png"
+},
+{
   "name": "Venusaur (Normal - Female)",
   "rarity": "Comum",
   "baseCatch": 25,

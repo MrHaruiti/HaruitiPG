@@ -6,8 +6,9 @@ let state = {
 let currentEncounter = null;
 const shinyChance = 0.001; // 0.1%
 
-// carregar região inicial
+// carregar Kanto por padrão
 loadRegion("kanto");
+showSubTab("db-kanto");
 
 function save() { localStorage.setItem('pk_state', JSON.stringify(state)); }
 function load() { let s = localStorage.getItem('pk_state'); if(s) state = JSON.parse(s); }
@@ -16,13 +17,12 @@ function showTab(t){
   document.querySelectorAll('.tab').forEach(el=>el.style.display='none');
   document.getElementById('tab-'+t).style.display='block';
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`nav button[onclick="showTab('`+t+`')"]`).classList.add('active');
+  document.querySelector(`nav button[onclick="showTab('${t}')"]`).classList.add('active');
 }
 function showSubTab(id){
   document.querySelectorAll('.subtab').forEach(el=>el.style.display='none');
   document.getElementById(id).style.display='block';
 
-  // se for sub-aba Database, carregar região correspondente
   if(id.startsWith("db-")){
     const region = id.replace("db-","");
     loadRegion(region);
@@ -40,7 +40,8 @@ function loadRegion(region){
     .catch(err => {
       console.warn("Nenhum arquivo para região:", region, err);
       state.pokedex = [];
-      document.querySelector(`#db-${region} .list`)?.replaceChildren();
+      const box=document.querySelector(`#db-${region} .list`);
+      if(box) box.innerHTML='<div>Nenhum Pokémon cadastrado.</div>';
     });
 }
 

@@ -85,11 +85,14 @@ function renderCollection(){
 }
 
 function renderPokedex(){
-  const box=document.getElementById('pokedexList');box.innerHTML='';
+  const box=document.getElementById('pokedexList');
+  box.innerHTML='';
   state.pokedex.forEach(p=>{
-    const shinyMark=p.imgShiny?' ⭐':'';
-    const div=document.createElement('div');div.className='item';
-    div.innerHTML=`<img class="sprite" src="${p.img}"/> <b>${p.name}</b> — ${p.rarity}${shinyMark}`;
+    let shinySprite = p.imgShiny ? `<img class="sprite" src="${p.imgShiny}" title="Shiny"/>` : "";
+    let normalSprite = `<img class="sprite" src="${p.img}" title="Normal"/>`;
+    const div=document.createElement('div');
+    div.className='item';
+    div.innerHTML=`${normalSprite} ${shinySprite} <b>${p.name}</b> — ${p.rarity}`;
     box.appendChild(div);
   });
 }
@@ -114,37 +117,3 @@ function showDetails(id){
       info+=`<div>Precisa de ${need} 🍬 para evoluir</div>`;
     }
   }
-  // botão de transferir
-  info+=`<button onclick="transfer('${c.id}')">Transferir → +1 🍬</button>`;
-  info+=`<div>Capturado em: ${c.capturedAt}</div>`;
-  document.getElementById('dInfo').innerHTML=info;
-  document.getElementById('detailModal').style.display='flex';
-}
-function closeDetails(){document.getElementById('detailModal').style.display='none';}
-
-function evolve(id){
-  const c=state.collection.find(x=>x.id===id);if(!c||!c.evolution)return;
-  const base=c.name.split(" ")[0];
-  const cost=c.evolution.cost;
-  if((state.candies[base]||0)>=cost){
-    state.candies[base]-=cost;
-    c.name=c.evolution.to;
-    c.evolution=null;
-    save();renderCollection();closeDetails();
-    alert("Evoluiu para "+c.name+"!");
-  }
-}
-
-function transfer(id){
-  const i = state.collection.findIndex(x => x.id === id);
-  if(i >= 0){
-    const c = state.collection[i];
-    const base = c.name.split(" ")[0];
-    state.candies[base] = (state.candies[base]||0) + 1;
-    state.collection.splice(i,1); // remove da coleção
-    save(); renderCollection(); closeDetails();
-    alert(c.name+" foi transferido! Você ganhou +1 🍬");
-  }
-}
-
-load();renderCollection();showTab('explore');

@@ -20,11 +20,9 @@ function showTab(t){
   document.querySelectorAll(".tab").forEach(el=>el.style.display="none");
   document.getElementById("tab-"+t).style.display="block";
 }
-
 function showSubTab(id){
   document.querySelectorAll(".subtab").forEach(el=>el.style.display="none");
   document.getElementById(id).style.display="block";
-
   if(id.startsWith("db-")){
     const region = id.replace("db-","");
     loadRegion(region);
@@ -53,7 +51,7 @@ function explore(){
   currentEncounter.shiny=Math.random()<shinyChance;
   document.getElementById("exploreResult").innerHTML=
     `<div>Encontrou ${p.name}${currentEncounter.shiny?' ⭐ Shiny':''}!</div>
-     <img src="${currentEncounter.shiny&&p.imgShiny?p.imgShiny:p.img}" style="width:72px;height:72px"><br>
+     <img src="${currentEncounter.shiny&&p.imgShiny?p.imgShiny:p.img}" width="72"><br>
      <button onclick="tryCatch()">Tentar Capturar</button>
      <div id="encResult"></div>`;
 }
@@ -95,14 +93,59 @@ function renderCollection(){
   });
 }
 
+// 🔥 Database em grade (10 por linha, só forma normal)
 function renderPokedex(region){
   const box=document.querySelector(`#db-${region} .list`);
   if(!box) return;
-  box.innerHTML="";
-  state.pokedex.forEach(p=>{
-    let shinySprite=p.imgShiny?`<img class="sprite" src="${p.imgShiny}">`:"";
-    box.innerHTML+=`<div class="item"><img class="sprite" src="${p.img}"/> ${shinySprite} <b>${p.name}</b> — ${p.rarity}</div>`;
+  box.innerHTML='';
+  
+  // ordenar por número dex
+  const sorted = [...state.pokedex].sort((a,b) => (a.dex||9999) - (b.dex||9999));
+
+  // criar grid
+  box.style.display="grid";
+  box.style.gridTemplateColumns="repeat(10, 1fr)";
+  box.style.gap="10px";
+  box.style.textAlign="center";
+
+  // evitar duplicados
+  const shown = [];
+  sorted.forEach(p=>{
+    if(p.form==="normal" && !shown.includes(p.dex)){
+      shown.push(p.dex);
+      const div=document.createElement("div");
+      div.className="item clickable";
+      div.innerHTML=`
+        <img class="sprite" src="${p.img}" alt="${p.name}"/>
+        <div>${p.name}</div>
+      `;
+      div.onclick=()=>showAllForms(p.dex);
+      box.appendChild(div);
+    }
   });
+}
+
+// 🔥 Mostrar todas as formas no modal
+function showAllForms(dex){
+  const forms = state.pokedex.filter(p=>p.dex===dex);
+  if(forms.length===0) return;
+
+  const baseName = forms[0].name.split(" ")[0];
+  document.getElementById('dName').innerText = baseName+" — Todas as formas";
+  
+  let html="";
+  forms.forEach(f=>{
+    html+=`
+      <div style="margin:6px 0; border-bottom:1px solid #333; padding:4px;">
+        <img src="${f.img}" width="48"> 
+        ${f.imgShiny?`<img src="${f.imgShiny}" width="48">`:''} 
+        <b>${f.name}</b> — ${f.rarity}
+      </div>
+    `;
+  });
+  document.getElementById('dImg').src=forms[0].img; // placeholder
+  document.getElementById('dInfo').innerHTML=html;
+  document.getElementById('detailModal').style.display='flex';
 }
 
 function showDetails(id){

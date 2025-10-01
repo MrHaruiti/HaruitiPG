@@ -13,11 +13,12 @@
     <button onclick="showTab('explore')">Explorar</button>
     <button onclick="showTab('battle')">Batalha</button>
     <button onclick="showTab('bag')">Bag</button>
-    <button onclick="showTab('pokedex')">Database</button>
+    <button onclick="showTab('database')">Database</button>
   </nav>
 </header>
 
 <main class="wrap">
+  <!-- EXPLORAR -->
   <section id="tab-explore" class="tab">
     <div class="card">
       <h2>🌍 Exploração</h2>
@@ -26,10 +27,12 @@
     </div>
   </section>
 
+  <!-- BATALHA -->
   <section id="tab-battle" class="tab" style="display:none">
     <div class="card"><h2>⚔️ Batalha</h2><div>Em breve...</div></div>
   </section>
 
+  <!-- BAG -->
   <section id="tab-bag" class="tab" style="display:none">
     <div class="subnav">
       <button onclick="showSubTab('bag-pokemon')">Pokémon</button>
@@ -43,8 +46,48 @@
     </div>
   </section>
 
-  <section id="tab-pokedex" class="tab" style="display:none">
-    <div class="card"><h2>🗄️ Database</h2><div id="pokedexList" class="list"></div></div>
+  <!-- DATABASE -->
+  <section id="tab-database" class="tab" style="display:none">
+    <div class="subnav">
+      <button onclick="showSubTab('db-kanto')">Kanto</button>
+      <button onclick="showSubTab('db-johto')">Johto</button>
+      <button onclick="showSubTab('db-hoenn')">Hoenn</button>
+      <button onclick="showSubTab('db-sinnoh')">Sinnoh</button>
+      <button onclick="showSubTab('db-unova')">Unova</button>
+      <button onclick="showSubTab('db-kalos')">Kalos</button>
+      <button onclick="showSubTab('db-alola')">Alola</button>
+      <button onclick="showSubTab('db-galar')">Galar</button>
+      <button onclick="showSubTab('db-paldea')">Paldea</button>
+    </div>
+
+    <div id="db-kanto" class="subtab">
+      <div class="card"><h2>🗄️ Database — Kanto</h2><div id="pokedexList" class="list"></div></div>
+    </div>
+
+    <div id="db-johto" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Johto</h2><div>Em breve...</div></div>
+    </div>
+    <div id="db-hoenn" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Hoenn</h2><div>Em breve...</div></div>
+    </div>
+    <div id="db-sinnoh" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Sinnoh</h2><div>Em breve...</div></div>
+    </div>
+    <div id="db-unova" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Unova</h2><div>Em breve...</div></div>
+    </div>
+    <div id="db-kalos" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Kalos</h2><div>Em breve...</div></div>
+    </div>
+    <div id="db-alola" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Alola</h2><div>Em breve...</div></div>
+    </div>
+    <div id="db-galar" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Galar</h2><div>Em breve...</div></div>
+    </div>
+    <div id="db-paldea" class="subtab" style="display:none">
+      <div class="card"><h2>🗄️ Database — Paldea</h2><div>Em breve...</div></div>
+    </div>
   </section>
 </main>
 

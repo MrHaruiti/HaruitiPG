@@ -24,11 +24,12 @@ function load(){
   const s = localStorage.getItem("pk_state"); 
   if(s) {
     state = JSON.parse(s);
-    // ✅ Garante que nunca falte nenhuma chave
-    if (!state.items) state.items = {};
-    if (!state.candies) state.candies = {};
-    if (!state.collection) state.collection = [];
-    if (!state.pokedex) state.pokedex = [];
+
+    // ✅ força campos para não quebrarem
+    state.items = state.items && typeof state.items === "object" ? state.items : {};
+    state.candies = state.candies && typeof state.candies === "object" ? state.candies : {};
+    state.collection = Array.isArray(state.collection) ? state.collection : [];
+    state.pokedex = Array.isArray(state.pokedex) ? state.pokedex : [];
   }
 }
 
@@ -190,16 +191,16 @@ function renderCollection(){
   if (!box) return;
   box.innerHTML = "";
 
-  if (state.collection.length === 0){
-    box.innerHTML = "Nenhum Pokémon ainda.";
-    return;
-  }
-
-  // ✅ força grid com 10 por linha
+  // ✅ força sempre grid
   box.style.display = "grid";
   box.style.gridTemplateColumns = "repeat(10, 1fr)";
   box.style.gap = "10px";
   box.style.textAlign = "center";
+
+  if (state.collection.length === 0){
+    box.innerHTML = "Nenhum Pokémon ainda.";
+    return;
+  }
 
   state.collection.forEach(c => {
     const div = document.createElement("div");
@@ -208,7 +209,7 @@ function renderCollection(){
       <img class="sprite" src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" alt="${c.name}"/>
       <div>${c.name}</div>
     `;
-    div.onclick = () => showDetails(c.id); // ✅ abre modal pop-up
+    div.onclick = () => showDetails(c.id); 
     box.appendChild(div);
   });
 }
@@ -226,7 +227,6 @@ function showDetails(id){
   info += `<div>Raridade: ${c.rarity}</div>`;
   info += `<div>IVs: Atk ${c.iv.atk} • Def ${c.iv.def} • Sta ${c.iv.sta}</div>`;
   info += `<div>Doces: ${candies}</div>`;
-  // Somente Transferir (sem botão Fechar)
   info += `<div style="margin-top:10px;"><button onclick="transferPokemon('${c.id}')">Transferir</button></div>`;
 
   document.getElementById("dInfo").innerHTML = info;
@@ -257,7 +257,7 @@ function renderItems(){
   if (!box) return;
   box.innerHTML = "";
 
-  if (!state.items || Object.keys(state.items).length === 0){
+  if (!state.items || typeof state.items !== "object" || Object.keys(state.items).length === 0){
     box.innerHTML = "Nenhum item.";
     return;
   }
@@ -267,7 +267,7 @@ function renderItems(){
   }
 }
 
-// Modal de evolução (só aparece quando chamado; some sozinho)
+// Modal de evolução
 function startEvolution(pokemon){
   const evoText = document.getElementById("evoText");
   const evoImg  = document.getElementById("evoImg");

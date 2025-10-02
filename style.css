@@ -128,14 +128,16 @@ body {
     text-align: center;
 }
 
-/* 🔥 Corrigido: aplicando estilo só à caixa do modal */
+/* 🔥 Corrigido: estilo aplicado só na caixa do modal */
 #detailModal .modal-content {
     background-color: #1e1e1e;
     color: #e0e0e0;
     padding: 20px;
     border-radius: 10px;
     max-width: 400px;
+    width: 90%;
     border: 1px solid #333;
+    text-align: center;
 }
 
 button {

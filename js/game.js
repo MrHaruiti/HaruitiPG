@@ -50,20 +50,54 @@ function showSubTab(id){
   }
 }
 
-// Database / Pokédex
+// ✅ Database / Pokédex (adaptado para múltiplos arquivos de família)
 function loadRegion(region){
-  const file = "data/pokedex-" + region + ".json";
-  fetch(file)
-    .then(r => r.json())
-    .then(data => {
-      state.pokedex = data;
-      renderPokedex(region);
-    })
-    .catch(() => {
-      state.pokedex = [];
-      const box = document.querySelector(`#db-${region} .list`);
-      if (box) box.innerHTML = "<div>Nenhum Pokémon cadastrado.</div>";
-    });
+  const familiesByRegion = {
+    kanto: [
+      "Bulbasaur Family",
+      "Charmander Family",
+      "Squirtle Family",
+      "Pikachu Family",
+      "Eevee Family",
+      "Mew Family"
+      // adicione aqui todas as famílias de Kanto
+    ],
+    johto: [
+      "Chikorita Family",
+      "Cyndaquil Family",
+      "Totodile Family"
+      // ...
+    ],
+    hoenn: [
+      "Treecko Family",
+      "Torchic Family",
+      "Mudkip Family"
+      // ...
+    ]
+    // continue para outras regiões
+  };
+
+  const families = familiesByRegion[region] || [];
+  state.pokedex = [];
+
+  if (families.length === 0){
+    const box = document.querySelector(`#db-${region} .list`);
+    if (box) box.innerHTML = "<div>Nenhuma família cadastrada para essa região.</div>";
+    return;
+  }
+
+  Promise.all(
+    families.map(f => fetch(`data/${region}/${f}.json`).then(r => r.json()))
+  )
+  .then(results => {
+    results.forEach(fam => state.pokedex.push(...fam));
+    renderPokedex(region);
+  })
+  .catch(err => {
+    console.error("Erro ao carregar região:", err);
+    const box = document.querySelector(`#db-${region} .list`);
+    if (box) box.innerHTML = "<div>Erro ao carregar os Pokémon dessa região.</div>";
+  });
 }
 
 function renderPokedex(region){
@@ -208,7 +242,7 @@ function renderCollection(){
   });
 }
 
-// ✅ Novo Pop-up de detalhes corrigido
+// Pop-up de detalhes
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;

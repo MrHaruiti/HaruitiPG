@@ -160,6 +160,7 @@ function tryCatch(){
       id: "c" + Date.now(),
       family: family,
       base: baseName,
+      dex: currentEncounter.dex,
       name: currentEncounter.name,
       rarity: currentEncounter.rarity,
       img: currentEncounter.img,
@@ -207,23 +208,35 @@ function renderCollection(){
   });
 }
 
+// Novo Pop-up de detalhes
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;
+
   const candies = state.candies[c.family] || 0;
+  const cp = Math.floor((c.iv.atk + c.iv.def + c.iv.sta) * 10); // placeholder de CP
 
-  document.getElementById("dName").innerText = c.name + (c.shiny ? " ⭐" : "");
-  document.getElementById("dImg").src       = c.shiny && c.imgShiny ? c.imgShiny : c.img;
+  const modal = document.getElementById("detailModal");
+  if (!modal) return;
 
-  let info = "";
-  info += `<div>Raridade: ${c.rarity}</div>`;
-  info += `<div>IVs: Atk ${c.iv.atk} • Def ${c.iv.def} • Sta ${c.iv.sta}</div>`;
-  // ✅ Novo formato
-  info += `<div>${c.base} Candy: ${candies}</div>`;
-  info += `<div style="margin-top:10px;"><button onclick="transferPokemon('${c.id}')">Transferir</button></div>`;
+  modal.innerHTML = `
+    <div class="modal-box" style="background:#fff; padding:15px; border-radius:10px; text-align:center; max-width:300px; margin:auto;">
+      <div style="font-weight:bold; font-size:18px;">CP ${cp}</div>
+      <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
+      <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
+      <hr>
+      <div><b>Forma:</b> ${c.shiny ? "Shiny" : "Normal"}</div>
+      <div><b>Ataques:</b> (em breve)</div>
+      <div><b>${c.base} Candy:</b> ${candies}</div>
+      <div><b>Data de Captura:</b> ${c.capturedAt}</div>
+      <div style="margin-top:10px;">
+        <button onclick="transferPokemon('${c.id}')">Transferir</button>
+        <button onclick="closeDetails()">Fechar</button>
+      </div>
+    </div>
+  `;
 
-  document.getElementById("dInfo").innerHTML = info;
-  document.getElementById("detailModal").style.display = "flex";
+  modal.style.display = "flex";
 }
 
 function transferPokemon(id){
@@ -240,7 +253,10 @@ function transferPokemon(id){
 
 function closeDetails(){
   const modal = document.getElementById("detailModal");
-  if (modal) modal.style.display = "none";
+  if (modal){
+    modal.style.display = "none";
+    modal.innerHTML = "";
+  }
 }
 
 function renderItems(){

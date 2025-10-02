@@ -1,78 +1,89 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Pokémon Prototype</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="game.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pokémon Fangame</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Pokémon Prototype</h1>
-    <nav>
-      <button onclick="showTab('explore')">Explorar</button>
-      <button onclick="showTab('battle')">Batalha</button>
-      <button onclick="showTab('bag')">Bag</button>
-      <button onclick="showTab('database')">Database</button>
-    </nav>
-  </header>
+<header>
+  <h1>Pokémon Fangame</h1>
+  <nav>
+    <button onclick="showTab('explore')">Explorar</button>
+    <button onclick="showTab('battle')">Batalha</button>
+    <button onclick="showTab('bag')">Bag</button>
+    <button onclick="showTab('database')">Database</button>
+  </nav>
+</header>
 
-  <!-- Explorar -->
-  <div id="tab-explore" class="tab">
-    <button onclick="explore()">Explorar</button>
-    <div id="exploreResult"></div>
-  </div>
+<main class="wrap">
+  <!-- EXPLORAR -->
+  <section id="tab-explore" class="tab">
+    <div class="card">
+      <h2>🌍 Exploração</h2>
+      <button onclick="explore()">Explorar</button>
+      <div id="exploreResult"></div>
+    </div>
+  </section>
 
-  <!-- Batalha -->
-  <div id="tab-battle" class="tab">
-    <h2>Em breve...</h2>
-  </div>
+  <!-- BATALHA -->
+  <section id="tab-battle" class="tab" style="display:none">
+    <div class="card"><h2>⚔️ Batalha</h2><div>Em breve...</div></div>
+  </section>
 
-  <!-- Bag -->
-  <div id="tab-bag" class="tab">
+  <!-- BAG -->
+  <section id="tab-bag" class="tab" style="display:none">
     <div class="subnav">
       <button onclick="showSubTab('bag-pokemon')">Pokémon</button>
-      <button onclick="showSubTab('bag-items')">Itens</button>
+      <button onclick="showSubTab('bag-itens')">Itens</button>
     </div>
     <div id="bag-pokemon" class="subtab">
-      <h2>Meus Pokémon</h2>
-      <div id="collection"></div>
+      <div class="card"><h2>📦 Coleção</h2><div id="collection" class="list"></div></div>
     </div>
-    <div id="bag-items" class="subtab">
-      <h2>Itens</h2>
-      <div id="items"></div>
+    <div id="bag-itens" class="subtab" style="display:none">
+      <div class="card"><h2>🎒 Itens</h2><div id="items">Nenhum item ainda.</div></div>
     </div>
-  </div>
+  </section>
 
-  <!-- Database -->
-  <div id="tab-database" class="tab">
+  <!-- DATABASE -->
+  <section id="tab-database" class="tab" style="display:none">
     <div class="subnav">
       <button onclick="showSubTab('db-kanto')">Kanto</button>
       <button onclick="showSubTab('db-johto')">Johto</button>
       <button onclick="showSubTab('db-hoenn')">Hoenn</button>
+      <button onclick="showSubTab('db-sinnoh')">Sinnoh</button>
+      <button onclick="showSubTab('db-unova')">Unova</button>
+      <button onclick="showSubTab('db-kalos')">Kalos</button>
+      <button onclick="showSubTab('db-alola')">Alola</button>
+      <button onclick="showSubTab('db-galar')">Galar</button>
+      <button onclick="showSubTab('db-paldea')">Paldea</button>
     </div>
+
     <div id="db-kanto" class="subtab">
-      <h2>Kanto</h2>
-      <div id="pokedexList" class="list"></div>
+      <div class="card"><h2>🗄️ Database — Kanto</h2><div id="pokedexList" class="list"></div></div>
     </div>
-    <div id="db-johto" class="subtab"><h2>Johto</h2></div>
-    <div id="db-hoenn" class="subtab"><h2>Hoenn</h2></div>
-  </div>
+    <div id="db-johto" class="subtab" style="display:none"><div class="card"><h2>Johto</h2>Em breve...</div></div>
+    <div id="db-hoenn" class="subtab" style="display:none"><div class="card"><h2>Hoenn</h2>Em breve...</div></div>
+    <div id="db-sinnoh" class="subtab" style="display:none"><div class="card"><h2>Sinnoh</h2>Em breve...</div></div>
+    <div id="db-unova" class="subtab" style="display:none"><div class="card"><h2>Unova</h2>Em breve...</div></div>
+    <div id="db-kalos" class="subtab" style="display:none"><div a class="card"><h2>Kalos</h2>Em breve...</div></div>
+    <div id="db-alola" class="subtab" style="display:none"><div class="card"><h2>Alola</h2>Em breve...</div></div>
+    <div id="db-galar" class="subtab" style="display:none"><div class="card"><h2>Galar</h2>Em breve...</div></div>
+    <div id="db-paldea" class="subtab" style="display:none"><div class="card"><h2>Paldea</h2>Em breve...</div></div>
+  </section>
+</main>
 
-  <!-- Modal Detalhes -->
-  <div id="detailModal" style="display:none;">
-    <div class="modal-content">
-      <h2 id="dName"></h2>
-      <img id="dImg" src="" alt="">
-      <div id="dInfo"></div>
-      <!-- Os botões "Transferir / Evoluir / Fechar" agora são adicionados dinamicamente pelo game.js -->
-    </div>
+<!-- Modal Detalhes -->
+<div id="detailModal">
+  <div class="modal-box">
+    <h2 id="dName"></h2>
+    <img id="dImg" class="modal-sprite"/><br>
+    <div id="dInfo"></div>
+    <!-- Botões agora são criados dinamicamente via game.js -->
   </div>
+</div>
 
-  <!-- Modal Evolução -->
-  <div id="evolutionModal">
-    <div id="evoText">Seu Pokémon está evoluindo...</div>
-    <img id="evoImg" src="" alt="Evoluindo">
-  </div>
+<script src="js/game.js"></script>
 </body>
 </html>

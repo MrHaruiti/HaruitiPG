@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pokémon Fangame</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Corrigido: game.js agora dentro da pasta /js -->
+  <script src="js/game.js" defer></script>
 </head>
 <body>
 <header>
@@ -80,10 +82,15 @@
     <h2 id="dName"></h2>
     <img id="dImg" class="modal-sprite"/><br>
     <div id="dInfo"></div>
-    <!-- Botões agora são criados dinamicamente via game.js -->
+    <!-- Botões criados dinamicamente via game.js -->
   </div>
 </div>
 
-<script src="js/game.js"></script>
+<!-- Modal Evolução -->
+<div id="evolutionModal">
+  <div id="evoText">Seu Pokémon está evoluindo...</div>
+  <img id="evoImg" src="" alt="Evoluindo">
+</div>
+
 </body>
 </html>

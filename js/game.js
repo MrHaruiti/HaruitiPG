@@ -90,7 +90,7 @@ function renderPokedex(region){
   });
 }
 
-// Modal de todas as formas (sem botão Fechar)
+// Modal de todas as formas (agora com clique nas miniaturas)
 function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
   if (forms.length === 0) return;
@@ -107,8 +107,8 @@ function showAllForms(dex){
   forms.forEach(f => {
     html += `
       <div style="margin:6px 0; border-bottom:1px solid #333; padding:4px;">
-        <img src="${f.img}" width="48">
-        ${f.imgShiny ? `<img src="${f.imgShiny}" width="48">` : ""}
+        <img src="${f.img}" width="48" class="clickable" onclick="setMainSprite('${f.img}')">
+        ${f.imgShiny ? `<img src="${f.imgShiny}" width="48" class="clickable" onclick="setMainSprite('${f.imgShiny}')">` : ""}
         <b>${f.name}</b> — ${f.rarity}
       </div>
     `;
@@ -116,6 +116,12 @@ function showAllForms(dex){
 
   if (dInfo) dInfo.innerHTML = html;
   document.getElementById("detailModal").style.display = "flex";
+}
+
+// ✅ Função auxiliar para trocar o sprite principal
+function setMainSprite(src){
+  const dImg = document.getElementById("dImg");
+  if (dImg) dImg.src = src;
 }
 
 // Explorar & Captura

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pokémon Fangame</title>
   <link rel="stylesheet" href="style.css">
+  <!-- IMPORTANTE: o JS está em /js -->
   <script src="js/game.js" defer></script>
 </head>
 <body>
@@ -68,15 +69,15 @@
     <div id="db-hoenn" class="subtab" style="display:none"><div class="card"><h2>Hoenn</h2>Em breve...</div></div>
     <div id="db-sinnoh" class="subtab" style="display:none"><div class="card"><h2>Sinnoh</h2>Em breve...</div></div>
     <div id="db-unova" class="subtab" style="display:none"><div class="card"><h2>Unova</h2>Em breve...</div></div>
-    <div id="db-kalos" class="subtab" style="display:none"><div a class="card"><h2>Kalos</h2>Em breve...</div></div>
+    <div id="db-kalos" class="subtab" style="display:none"><div class="card"><h2>Kalos</h2>Em breve...</div></div>
     <div id="db-alola" class="subtab" style="display:none"><div class="card"><h2>Alola</h2>Em breve...</div></div>
     <div id="db-galar" class="subtab" style="display:none"><div class="card"><h2>Galar</h2>Em breve...</div></div>
     <div id="db-paldea" class="subtab" style="display:none"><div class="card"><h2>Paldea</h2>Em breve...</div></div>
   </section>
 </main>
 
-<!-- Modal Detalhes -->
-<div id="detailModal">
+<!-- Modal Detalhes (sem botão Fechar fixo) -->
+<div id="detailModal" style="display:none;">
   <div class="modal-box">
     <h2 id="dName"></h2>
     <img id="dImg" class="modal-sprite"/><br>
@@ -84,7 +85,7 @@
   </div>
 </div>
 
-<!-- Modal Evolução (corrigido para ficar oculto até usar) -->
+<!-- Modal Evolução (oculto por padrão) -->
 <div id="evolutionModal" style="display:none;">
   <div id="evoText">Seu Pokémon está evoluindo...</div>
   <img id="evoImg" src="" alt="Evoluindo">

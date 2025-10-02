@@ -20,7 +20,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Persistência
 function save(){ localStorage.setItem("pk_state", JSON.stringify(state)); }
-function load(){ const s = localStorage.getItem("pk_state"); if(s) state = JSON.parse(s); }
+function load(){ 
+  const s = localStorage.getItem("pk_state"); 
+  if(s) {
+    state = JSON.parse(s);
+    // ✅ Garante que nunca falte nenhuma chave
+    if (!state.items) state.items = {};
+    if (!state.candies) state.candies = {};
+    if (!state.collection) state.collection = [];
+    if (!state.pokedex) state.pokedex = [];
+  }
+}
 
 // Navegação de abas
 function showTab(t){
@@ -90,7 +100,7 @@ function renderPokedex(region){
   });
 }
 
-// Modal de todas as formas (agora com clique nas miniaturas)
+// Modal de todas as formas
 function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
   if (forms.length === 0) return;
@@ -107,8 +117,8 @@ function showAllForms(dex){
   forms.forEach(f => {
     html += `
       <div style="margin:6px 0; border-bottom:1px solid #333; padding:4px;">
-        <img src="${f.img}" width="48" class="clickable" onclick="setMainSprite('${f.img}')">
-        ${f.imgShiny ? `<img src="${f.imgShiny}" width="48" class="clickable" onclick="setMainSprite('${f.imgShiny}')">` : ""}
+        <img src="${f.img}" width="48" class="clickable" onclick='setMainForm(${JSON.stringify(f)})'>
+        ${f.imgShiny ? `<img src="${f.imgShiny}" width="48" class="clickable" onclick='setMainForm(${JSON.stringify({...f, shiny:true})})'>` : ""}
         <b>${f.name}</b> — ${f.rarity}
       </div>
     `;
@@ -118,10 +128,13 @@ function showAllForms(dex){
   document.getElementById("detailModal").style.display = "flex";
 }
 
-// ✅ Função auxiliar para trocar o sprite principal
-function setMainSprite(src){
-  const dImg = document.getElementById("dImg");
-  if (dImg) dImg.src = src;
+// ✅ Atualiza sprite principal + infos da forma escolhida
+function setMainForm(form){
+  const dImg  = document.getElementById("dImg");
+  const dName = document.getElementById("dName");
+
+  if (dImg)  dImg.src = form.shiny && form.imgShiny ? form.imgShiny : form.img;
+  if (dName) dName.innerText = form.name + (form.shiny ? " ⭐" : "");
 }
 
 // Explorar & Captura
@@ -227,14 +240,17 @@ function closeDetails(){
   if (modal) modal.style.display = "none";
 }
 
+// ✅ Corrigido para nunca quebrar se state.items for null
 function renderItems(){
   const box = document.getElementById("items");
   if (!box) return;
   box.innerHTML = "";
-  if (Object.keys(state.items).length === 0){
+
+  if (!state.items || Object.keys(state.items).length === 0){
     box.innerHTML = "Nenhum item.";
     return;
   }
+
   for (const k in state.items){
     box.innerHTML += `<div>${k}: ${state.items[k]}</div>`;
   }

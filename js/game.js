@@ -1,4 +1,4 @@
-// Estado global
+// == Estado Global ==
 let state = {
   pokedex: [],
   collection: [],
@@ -6,14 +6,14 @@ let state = {
   items: {}
 };
 
-let cpmTable = {}; // tabela de multiplicadores
+let cpmTable = {}; // tabela CPM
 
 // Carregar tabela CPM
 fetch("data/cpm.json")
   .then(r => r.json())
   .then(data => { cpmTable = data; });
 
-// Salvar/Carregar progresso
+// == Salvar / Carregar ==
 function saveState() {
   localStorage.setItem("gameState", JSON.stringify(state));
 }
@@ -22,7 +22,7 @@ function loadState() {
   if (saved) state = JSON.parse(saved);
 }
 
-// Calcular CP
+// == Calcular CP ==
 function calculateCP(baseStats, iv, level) {
   const cpm = cpmTable[level] || 0;
   const Atk = baseStats.atk + iv.atk;
@@ -31,7 +31,7 @@ function calculateCP(baseStats, iv, level) {
   return Math.floor(((Atk) * Math.sqrt(Def) * Math.sqrt(Sta) * (cpm ** 2)) / 10);
 }
 
-// Renderizar Pokédex
+// == Renderizar Database ==
 function renderPokedex(region) {
   const box = document.querySelector(`#db-${region} .list`);
   if (!box) return;
@@ -45,7 +45,7 @@ function renderPokedex(region) {
   });
 }
 
-// Detalhes do Pokémon (Database)
+// == Detalhes Database ==
 function showPokemonDetails(pokemon) {
   const modal = document.getElementById("detailModal");
   const content = modal.querySelector(".modal-content");
@@ -73,7 +73,7 @@ function closeModal(id) {
   document.getElementById(id).style.display = "none";
 }
 
-// Exploração
+// == Exploração ==
 function explore(region) {
   if (!state.pokedex.length) return alert("Carregue a região primeiro!");
   const randomIndex = Math.floor(Math.random() * state.pokedex.length);
@@ -124,21 +124,26 @@ function catchPokemon(index, shiny) {
   alert(`${pokemon.name} capturado!`);
 }
 
-// Renderizar Bag
+// == Renderizar Bag ==
 function renderBag() {
-  const box = document.querySelector("#bag .list");
+  const box = document.querySelector("#collection");
   if (!box) return;
   box.innerHTML = "";
   state.collection.forEach((p, idx) => {
     const div = document.createElement("div");
-    div.className = "pokemon";
-    div.innerHTML = `<img src="${p.shiny ? "https://img.pokemondb.net/sprites/go/shiny/" + p.name.toLowerCase() + ".png" : "https://img.pokemondb.net/sprites/go/normal/" + p.name.toLowerCase() + ".png"}">`;
+    div.className = "item";
+    div.innerHTML = `
+      <img class="sprite" src="${p.shiny 
+        ? "https://img.pokemondb.net/sprites/go/shiny/" + p.name.toLowerCase() + ".png" 
+        : "https://img.pokemondb.net/sprites/go/normal/" + p.name.toLowerCase() + ".png"}">
+      <div class="cp-level-small">CP ${p.cp} – Lv ${p.level}</div>
+    `;
     div.onclick = () => showBagDetails(p, idx);
     box.appendChild(div);
   });
 }
 
-// Detalhes da Bag (pop-up)
+// == Detalhes Bag ==
 function showBagDetails(p, idx) {
   const modal = document.getElementById("detailModal");
   const content = modal.querySelector(".modal-content");
@@ -165,9 +170,9 @@ function transferPokemon(idx) {
   closeModal('detailModal');
 }
 
-// Renderizar Itens
+// == Renderizar Itens ==
 function renderItems() {
-  const box = document.querySelector("#items .list");
+  const box = document.querySelector("#items");
   if (!box) return;
   box.innerHTML = "";
   if (Object.keys(state.items).length === 0) {
@@ -179,7 +184,7 @@ function renderItems() {
   }
 }
 
-// Inicialização
+// == Inicialização ==
 document.addEventListener("DOMContentLoaded", () => {
   loadState();
   renderBag();

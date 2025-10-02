@@ -2,7 +2,7 @@ let state = {
   pokedex: [],
   collection: [],
   candies: {},
-  items: {} // agora inclui mega stones
+  items: {}
 };
 let currentEncounter = null;
 const shinyChance = 0.001;
@@ -19,6 +19,7 @@ function load(){ let s=localStorage.getItem("pk_state"); if(s) state=JSON.parse(
 function showTab(t){
   document.querySelectorAll(".tab").forEach(el=>el.style.display="none");
   document.getElementById("tab-"+t).style.display="block";
+  closeDetails(); // fecha o modal sempre que muda de aba
 }
 function showSubTab(id){
   document.querySelectorAll(".subtab").forEach(el=>el.style.display="none");
@@ -139,7 +140,6 @@ function showAllForms(dex){
       </div>
     `;
   });
-  html+=`<div style="margin-top:10px;"><button onclick="closeDetails()">Fechar</button></div>`;
   
   document.getElementById('dImg').src=forms[0].img;
   document.getElementById('dInfo').innerHTML=html;
@@ -157,12 +157,8 @@ function showDetails(id){
   info+=`<div>IVs: Atk ${c.iv.atk} • Def ${c.iv.def} • Sta ${c.iv.sta}</div>`;
   info+=`<div>Doces: ${candies}</div>`;
   
-  // botões dinâmicos
-  info+=`
-    <div style="margin-top:10px;">
-      <button onclick="transferPokemon('${c.id}')">Transferir</button>
-      <button onclick="closeDetails()">Fechar</button>
-    </div>`;
+  // só Transferir aqui, sem botão Fechar
+  info+=`<div style="margin-top:10px;"><button onclick="transferPokemon('${c.id}')">Transferir</button></div>`;
   
   document.getElementById("dInfo").innerHTML=info;
   document.getElementById("detailModal").style.display="flex";
@@ -183,7 +179,6 @@ function transferPokemon(id){
 
 function closeDetails(){document.getElementById("detailModal").style.display="none";}
 
-// render itens da Bag (Mega Stones etc.)
 function renderItems(){
   const box=document.getElementById("items"); if(!box) return;
   box.innerHTML="";
@@ -196,4 +191,4 @@ function renderItems(){
   }
 }
 
-load();renderCollection();renderItems();
+load();renderCollect

@@ -29,10 +29,15 @@ function showTab(t){
   if (tabEl) tabEl.style.display = "block";
   closeDetails();  // fecha o modal sempre que muda de aba
 }
+
 function showSubTab(id){
   document.querySelectorAll(".subtab").forEach(el => el.style.display = "none");
   const sub = document.getElementById(id);
   if (sub) sub.style.display = "block";
+
+  // ✅ Fecha o modal de detalhes sempre que mudar de sub-aba
+  closeDetails();
+
   if(id.startsWith("db-")){
     const region = id.replace("db-","");
     loadRegion(region);

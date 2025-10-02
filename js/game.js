@@ -11,9 +11,9 @@ const shinyChance = 0.001;
 // Boot
 document.addEventListener("DOMContentLoaded", () => {
   load();
-  showTab("explore");           // aba inicial
-  showSubTab("db-kanto");       // sub-aba padrão da Database
-  loadRegion("kanto");          // carrega a Kanto
+  showTab("explore");           
+  showSubTab("db-kanto");       
+  loadRegion("kanto");          
   renderCollection();
   renderItems();
 });
@@ -24,8 +24,6 @@ function load(){
   const s = localStorage.getItem("pk_state"); 
   if(s) {
     state = JSON.parse(s);
-
-    // ✅ força campos para não quebrarem
     state.items = state.items && typeof state.items === "object" ? state.items : {};
     state.candies = state.candies && typeof state.candies === "object" ? state.candies : {};
     state.collection = Array.isArray(state.collection) ? state.collection : [];
@@ -38,17 +36,14 @@ function showTab(t){
   document.querySelectorAll(".tab").forEach(el => el.style.display = "none");
   const tabEl = document.getElementById("tab-"+t);
   if (tabEl) tabEl.style.display = "block";
-  closeDetails();  // fecha o modal sempre que muda de aba
+  closeDetails();
 }
 
 function showSubTab(id){
   document.querySelectorAll(".subtab").forEach(el => el.style.display = "none");
   const sub = document.getElementById(id);
   if (sub) sub.style.display = "block";
-
-  // ✅ Fecha o modal de detalhes sempre que mudar de sub-aba
   closeDetails();
-
   if(id.startsWith("db-")){
     const region = id.replace("db-","");
     loadRegion(region);
@@ -71,13 +66,10 @@ function loadRegion(region){
     });
 }
 
-// Mostra grid (10 por linha) com apenas a forma "normal"
 function renderPokedex(region){
   const box = document.querySelector(`#db-${region} .list`);
   if(!box) return;
   box.innerHTML = "";
-
-  // força grid independente do CSS antigo
   box.style.display = "grid";
   box.style.gridTemplateColumns = "repeat(10, 1fr)";
   box.style.gap = "10px";
@@ -106,7 +98,7 @@ function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
   if (forms.length === 0) return;
 
-  const baseName = forms[0].name.split(" ")[0];
+  const baseName = forms[0].base || forms[0].name.split(" ")[0];
   const dName = document.getElementById("dName");
   const dImg  = document.getElementById("dImg");
   const dInfo = document.getElementById("dInfo");
@@ -129,11 +121,9 @@ function showAllForms(dex){
   document.getElementById("detailModal").style.display = "flex";
 }
 
-// ✅ Atualiza sprite principal + infos da forma escolhida
 function setMainForm(form){
   const dImg  = document.getElementById("dImg");
   const dName = document.getElementById("dName");
-
   if (dImg)  dImg.src = form.shiny && form.imgShiny ? form.imgShiny : form.img;
   if (dName) dName.innerText = form.name + (form.shiny ? " ⭐" : "");
 }
@@ -163,9 +153,13 @@ function tryCatch(){
 
   if (success){
     const iv = { atk: randIV(), def: randIV(), sta: randIV() };
+    const family = currentEncounter.family || currentEncounter.base || currentEncounter.dex;
+    const baseName = currentEncounter.base || currentEncounter.name.split(" ")[0];
+
     const entry = {
       id: "c" + Date.now(),
-      base: currentEncounter.name.split(" ")[0],
+      family: family,
+      base: baseName,
       name: currentEncounter.name,
       rarity: currentEncounter.rarity,
       img: currentEncounter.img,
@@ -174,8 +168,9 @@ function tryCatch(){
       iv,
       capturedAt: new Date().toLocaleString()
     };
+
     state.collection.push(entry);
-    state.candies[entry.base] = (state.candies[entry.base] || 0) + 3;
+    state.candies[family] = (state.candies[family] || 0) + 3;
     save(); renderCollection(); renderItems();
     if (res) res.innerHTML = "✨ Capturado!";
   } else {
@@ -185,13 +180,11 @@ function tryCatch(){
 }
 function randIV(){ return Math.floor(Math.random() * 16); }
 
-// Coleção / Bag (agora em grid + modal pop-up)
+// Coleção / Bag
 function renderCollection(){
   const box = document.getElementById("collection");
   if (!box) return;
   box.innerHTML = "";
-
-  // ✅ força sempre grid
   box.style.display = "grid";
   box.style.gridTemplateColumns = "repeat(10, 1fr)";
   box.style.gap = "10px";
@@ -217,8 +210,7 @@ function renderCollection(){
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;
-  const base = c.base;
-  const candies = state.candies[base] || 0;
+  const candies = state.candies[c.family] || 0;
 
   document.getElementById("dName").innerText = c.name + (c.shiny ? " ⭐" : "");
   document.getElementById("dImg").src       = c.shiny && c.imgShiny ? c.imgShiny : c.img;
@@ -226,7 +218,8 @@ function showDetails(id){
   let info = "";
   info += `<div>Raridade: ${c.rarity}</div>`;
   info += `<div>IVs: Atk ${c.iv.atk} • Def ${c.iv.def} • Sta ${c.iv.sta}</div>`;
-  info += `<div>Doces: ${candies}</div>`;
+  // ✅ Novo formato
+  info += `<div>${c.base} Candy: ${candies}</div>`;
   info += `<div style="margin-top:10px;"><button onclick="transferPokemon('${c.id}')">Transferir</button></div>`;
 
   document.getElementById("dInfo").innerHTML = info;
@@ -237,9 +230,8 @@ function transferPokemon(id){
   const idx = state.collection.findIndex(x => x.id === id);
   if (idx > -1){
     const p = state.collection[idx];
-    const base = p.base;
     state.collection.splice(idx, 1);
-    state.candies[base] = (state.candies[base] || 0) + 1;
+    state.candies[p.family] = (state.candies[p.family] || 0) + 1;
     save(); renderCollection(); renderItems();
     closeDetails();
     alert(p.name + " transferido! +1 doce");
@@ -251,23 +243,19 @@ function closeDetails(){
   if (modal) modal.style.display = "none";
 }
 
-// ✅ Corrigido para nunca quebrar se state.items for null
 function renderItems(){
   const box = document.getElementById("items");
   if (!box) return;
   box.innerHTML = "";
-
   if (!state.items || typeof state.items !== "object" || Object.keys(state.items).length === 0){
     box.innerHTML = "Nenhum item.";
     return;
   }
-
   for (const k in state.items){
     box.innerHTML += `<div>${k}: ${state.items[k]}</div>`;
   }
 }
 
-// Modal de evolução
 function startEvolution(pokemon){
   const evoText = document.getElementById("evoText");
   const evoImg  = document.getElementById("evoImg");
@@ -277,6 +265,5 @@ function startEvolution(pokemon){
   evoText.innerText = pokemon.name + " está evoluindo...";
   evoImg.src = pokemon.img;
   evoMod.style.display = "flex";
-
   setTimeout(() => { evoMod.style.display = "none"; }, 3000);
 }

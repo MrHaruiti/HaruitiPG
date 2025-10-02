@@ -184,20 +184,31 @@ function tryCatch(){
 }
 function randIV(){ return Math.floor(Math.random() * 16); }
 
-// Coleção / Bag
+// Coleção / Bag (agora em grid + modal pop-up)
 function renderCollection(){
   const box = document.getElementById("collection");
   if (!box) return;
   box.innerHTML = "";
+
   if (state.collection.length === 0){
     box.innerHTML = "Nenhum Pokémon ainda.";
     return;
   }
+
+  // ✅ força grid com 10 por linha
+  box.style.display = "grid";
+  box.style.gridTemplateColumns = "repeat(10, 1fr)";
+  box.style.gap = "10px";
+  box.style.textAlign = "center";
+
   state.collection.forEach(c => {
     const div = document.createElement("div");
     div.className = "item clickable";
-    div.innerHTML = `<img class="sprite" src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}"/> <b>${c.name}</b>`;
-    div.onclick = () => showDetails(c.id);
+    div.innerHTML = `
+      <img class="sprite" src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" alt="${c.name}"/>
+      <div>${c.name}</div>
+    `;
+    div.onclick = () => showDetails(c.id); // ✅ abre modal pop-up
     box.appendChild(div);
   });
 }

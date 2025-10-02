@@ -208,31 +208,30 @@ function renderCollection(){
   });
 }
 
-// Novo Pop-up de detalhes
+// ✅ Novo Pop-up de detalhes corrigido
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;
 
   const candies = state.candies[c.family] || 0;
-  const cp = Math.floor((c.iv.atk + c.iv.def + c.iv.sta) * 10); // placeholder de CP
+  const cp = Math.floor((c.iv.atk + c.iv.def + c.iv.sta) * 10);
 
+  const detailBox = document.getElementById("detailBox");
   const modal = document.getElementById("detailModal");
-  if (!modal) return;
+  if (!detailBox || !modal) return;
 
-  modal.innerHTML = `
-    <div class="modal-box" style="background:#fff; padding:15px; border-radius:10px; text-align:center; max-width:300px; margin:auto;">
-      <div style="font-weight:bold; font-size:18px;">CP ${cp}</div>
-      <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
-      <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
-      <hr>
-      <div><b>Forma:</b> ${c.shiny ? "Shiny" : "Normal"}</div>
-      <div><b>Ataques:</b> (em breve)</div>
-      <div><b>${c.base} Candy:</b> ${candies}</div>
-      <div><b>Data de Captura:</b> ${c.capturedAt}</div>
-      <div style="margin-top:10px;">
-        <button onclick="transferPokemon('${c.id}')">Transferir</button>
-        <button onclick="closeDetails()">Fechar</button>
-      </div>
+  detailBox.innerHTML = `
+    <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${cp}</div>
+    <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
+    <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
+    <hr>
+    <div><b>Forma:</b> ${c.shiny ? "Shiny" : "Normal"}</div>
+    <div><b>Ataques:</b> (em breve)</div>
+    <div><b>${c.base} Candy:</b> ${candies}</div>
+    <div><b>Data de Captura:</b> ${c.capturedAt}</div>
+    <div style="margin-top:10px;">
+      <button onclick="transferPokemon('${c.id}')">Transferir</button>
+      <button onclick="closeDetails()">Fechar</button>
     </div>
   `;
 
@@ -253,9 +252,10 @@ function transferPokemon(id){
 
 function closeDetails(){
   const modal = document.getElementById("detailModal");
+  const detailBox = document.getElementById("detailBox");
   if (modal){
     modal.style.display = "none";
-    modal.innerHTML = "";
+    if (detailBox) detailBox.innerHTML = "";
   }
 }
 

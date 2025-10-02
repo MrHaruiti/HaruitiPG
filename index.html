@@ -14,8 +14,8 @@
   <nav>
     <button onclick="showTab('explore')">Explorar</button>
     <button onclick="showTab('battle')">Batalha</button>
-    <button onclick="showTab('bag')">Bag</button>
     <button onclick="showTab('database')">Database</button>
+    <button onclick="showTab('bag')">Bag</button>
   </nav>
 </header>
 
@@ -34,54 +34,56 @@
     <div class="card"><h2>⚔️ Batalha</h2><div>Em breve...</div></div>
   </section>
 
-  <!-- BAG -->
-  <section id="tab-bag" class="tab" style="display:none">
-    <div class="subnav">
-      <button onclick="showSubTab('bag-pokemon')">Pokémon</button>
-      <button onclick="showSubTab('bag-itens')">Itens</button>
-    </div>
-    <div id="bag-pokemon" class="subtab">
-      <div class="card"><h2>📦 Coleção</h2><div id="collection" class="list"></div></div>
-    </div>
-    <div id="bag-itens" class="subtab" style="display:none">
-      <div class="card"><h2>🎒 Itens</h2><div id="items">Nenhum item ainda.</div></div>
+  <!-- DATABASE -->
+  <section id="tab-database" class="tab" style="display:none">
+    <div class="card">
+      <h2>📚 Database</h2>
+      <div class="subtabs">
+        <button onclick="showSubTab('db-kanto')">Kanto</button>
+        <button onclick="showSubTab('db-johto')">Johto</button>
+        <button onclick="showSubTab('db-hoenn')">Hoenn</button>
+        <button onclick="showSubTab('db-sinnoh')">Sinnoh</button>
+        <button onclick="showSubTab('db-unova')">Unova</button>
+        <button onclick="showSubTab('db-kalos')">Kalos</button>
+        <button onclick="showSubTab('db-alola')">Alola</button>
+        <button onclick="showSubTab('db-galar')">Galar</button>
+        <button onclick="showSubTab('db-paldea')">Paldea</button>
+      </div>
+
+      <div id="db-kanto" class="subtab"><div class="card"><h2>Kanto</h2><div class="list"></div></div></div>
+      <div id="db-johto" class="subtab" style="display:none"><div class="card"><h2>Johto</h2>Em breve...</div></div>
+      <div id="db-hoenn" class="subtab" style="display:none"><div class="card"><h2>Hoenn</h2>Em breve...</div></div>
+      <div id="db-sinnoh" class="subtab" style="display:none"><div class="card"><h2>Sinnoh</h2>Em breve...</div></div>
+      <div id="db-unova" class="subtab" style="display:none"><div class="card"><h2>Unova</h2>Em breve...</div></div>
+      <div id="db-kalos" class="subtab" style="display:none"><div class="card"><h2>Kalos</h2>Em breve...</div></div>
+      <div id="db-alola" class="subtab" style="display:none"><div class="card"><h2>Alola</h2>Em breve...</div></div>
+      <div id="db-galar" class="subtab" style="display:none"><div class="card"><h2>Galar</h2>Em breve...</div></div>
+      <div id="db-paldea" class="subtab" style="display:none"><div class="card"><h2>Paldea</h2>Em breve...</div></div>
     </div>
   </section>
 
-  <!-- DATABASE -->
-  <section id="tab-database" class="tab" style="display:none">
-    <div class="subnav">
-      <button onclick="showSubTab('db-kanto')">Kanto</button>
-      <button onclick="showSubTab('db-johto')">Johto</button>
-      <button onclick="showSubTab('db-hoenn')">Hoenn</button>
-      <button onclick="showSubTab('db-sinnoh')">Sinnoh</button>
-      <button onclick="showSubTab('db-unova')">Unova</button>
-      <button onclick="showSubTab('db-kalos')">Kalos</button>
-      <button onclick="showSubTab('db-alola')">Alola</button>
-      <button onclick="showSubTab('db-galar')">Galar</button>
-      <button onclick="showSubTab('db-paldea')">Paldea</button>
+  <!-- BAG -->
+  <section id="tab-bag" class="tab" style="display:none">
+    <div class="card">
+      <h2>🎒 Bag</h2>
+      <div class="bag-columns">
+        <div>
+          <h3>Pokémon</h3>
+          <div id="collection"></div>
+        </div>
+        <div>
+          <h3>Itens</h3>
+          <div id="items"></div>
+        </div>
+      </div>
     </div>
-
-    <div id="db-kanto" class="subtab">
-      <div class="card"><h2>🗄️ Database — Kanto</h2><div id="pokedexList" class="list"></div></div>
-    </div>
-    <div id="db-johto" class="subtab" style="display:none"><div class="card"><h2>Johto</h2>Em breve...</div></div>
-    <div id="db-hoenn" class="subtab" style="display:none"><div class="card"><h2>Hoenn</h2>Em breve...</div></div>
-    <div id="db-sinnoh" class="subtab" style="display:none"><div class="card"><h2>Sinnoh</h2>Em breve...</div></div>
-    <div id="db-unova" class="subtab" style="display:none"><div class="card"><h2>Unova</h2>Em breve...</div></div>
-    <div id="db-kalos" class="subtab" style="display:none"><div class="card"><h2>Kalos</h2>Em breve...</div></div>
-    <div id="db-alola" class="subtab" style="display:none"><div class="card"><h2>Alola</h2>Em breve...</div></div>
-    <div id="db-galar" class="subtab" style="display:none"><div class="card"><h2>Galar</h2>Em breve...</div></div>
-    <div id="db-paldea" class="subtab" style="display:none"><div class="card"><h2>Paldea</h2>Em breve...</div></div>
   </section>
 </main>
 
 <!-- Modal Detalhes -->
-<div id="detailModal" style="display:none;">
-  <div class="modal-box">
-    <h2 id="dName"></h2>
-    <img id="dImg" class="modal-sprite"/><br>
-    <div id="dInfo"></div>
+<div id="detailModal" class="modal">
+  <div class="modal-content" id="detailBox">
+    <!-- conteúdo injetado pelo game.js -->
   </div>
 </div>
 

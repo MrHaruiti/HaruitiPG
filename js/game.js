@@ -95,7 +95,7 @@ function renderPokedex(region){
   });
 }
 
-// Modal de todas as formas (corrigido com botão Fechar)
+// Modal de todas as formas (com botão Fechar)
 function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
   if (forms.length === 0) return;
@@ -125,15 +125,17 @@ function showAllForms(dex){
   if (modal) modal.classList.add("show");
 }
 
+// Modal de forma única (corrigido com botão Fechar)
 function setMainForm(form){
   const detailBox = document.getElementById("detailBox");
   if (detailBox) {
     detailBox.innerHTML = `
-      <img src="${form.shiny && form.imgShiny ? form.imgShiny : form.img}" width="96">
-      <div><b>${form.name}</b> ${form.shiny ? "⭐" : ""}</div>
-      <div style="margin-top:10px;">
-        <button onclick="closeDetails()">Fechar</button>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>${form.name} ${form.shiny ? "⭐" : ""}</h2>
+        <button onclick="closeDetails()">Fechar ✖</button>
       </div>
+      <hr>
+      <img src="${form.shiny && form.imgShiny ? form.imgShiny : form.img}" width="96" style="margin:10px 0;">
     `;
   }
 }

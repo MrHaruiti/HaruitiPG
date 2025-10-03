@@ -11,20 +11,18 @@ const shinyChance = 0.001;
 // Boot
 document.addEventListener("DOMContentLoaded", () => {
   load();
-  showTab("explore");
-  showSubTab("db-kanto");
-  loadRegion("kanto");
+  showTab("explore");           
+  showSubTab("db-kanto");       
+  loadRegion("kanto");          
   renderCollection();
   renderItems();
 });
 
-// ---------------------------
 // Persistência
-// ---------------------------
 function save(){ localStorage.setItem("pk_state", JSON.stringify(state)); }
-function load(){
-  const s = localStorage.getItem("pk_state");
-  if (s){
+function load(){ 
+  const s = localStorage.getItem("pk_state"); 
+  if(s) {
     state = JSON.parse(s);
     state.items = state.items && typeof state.items === "object" ? state.items : {};
     state.candies = state.candies && typeof state.candies === "object" ? state.candies : {};
@@ -33,9 +31,7 @@ function load(){
   }
 }
 
-// ---------------------------
-// Tabs
-// ---------------------------
+// Navegação de abas
 function showTab(t){
   document.querySelectorAll(".tab").forEach(el => el.style.display = "none");
   const tabEl = document.getElementById("tab-"+t);
@@ -48,97 +44,45 @@ function showSubTab(id){
   const sub = document.getElementById(id);
   if (sub) sub.style.display = "block";
   closeDetails();
-  if (id.startsWith("db-")){
+  if(id.startsWith("db-")){
     const region = id.replace("db-","");
     loadRegion(region);
   }
 }
 
-// ---------------------------
-//
-//  📌 Normalização/Migração de Família
-//
-//  Objetivo: toda família usa a MESMA chave (nome base, ex. "Bulbasaur").
-//  - canonicalFamilyKey(any): resolve string/numero (dex, nome, base) -> "BaseName"
-//  - migrateFamiliesToBase(): consolida state.candies e corrige collection[*].family/base
-//
-// ---------------------------
-
-// Resolve a chave canônica de família usando a pokédex carregada
-function canonicalFamilyKey(any){
-  if (any === undefined || any === null) return "";
-  const key = String(any).trim();
-
-  // Se for número (dex)
-  const num = Number(key);
-  if (!Number.isNaN(num) && Number.isFinite(num) && state.pokedex.length){
-    const rec = state.pokedex.find(p => p.dex === num);
-    if (rec) return (rec.base || rec.name.split(" ")[0]).trim();
-  }
-
-  if (state.pokedex.length){
-    // 1) se 'key' já é exatamente um base existente
-    if (state.pokedex.some(p => p.base === key)) return key;
-
-    // 2) tenta por nome exato (ou 1ª palavra do nome)
-    let rec = state.pokedex.find(p => p.name === key || p.name.split(" ")[0] === key);
-    if (rec) return (rec.base || rec.name.split(" ")[0]).trim();
-
-    // 3) tenta por "parecido": algum nome começa com key
-    rec = state.pokedex.find(p => p.name.startsWith(key));
-    if (rec) return (rec.base || rec.name.split(" ")[0]).trim();
-  }
-
-  // fallback: usa o que veio
-  return key;
-}
-
-// Consolida chaves de candies e corrige collection[*].family/base
-function migrateFamiliesToBase(){
-  if (!state.pokedex || !state.pokedex.length) return;
-
-  // Reagrupar candies por chave canônica
-  const newCandies = {};
-  for (const k in state.candies){
-    const canon = canonicalFamilyKey(k);
-    newCandies[canon] = (newCandies[canon] || 0) + (state.candies[k] || 0);
-  }
-  state.candies = newCandies;
-
-  // Corrigir cada entry da coleção
-  state.collection.forEach(c => {
-    const canonFam = canonicalFamilyKey(c.family || c.base || c.dex);
-    c.family = canonFam;
-    // Garanta que "base" também reflita a chave canônica (somente para exibição)
-    c.base = canonicalFamilyKey(c.base || (c.name ? c.name.split(" ")[0] : c.family));
-  });
-
-  save();
-}
-
-// ---------------------------
 // Database / Pokédex
-// ---------------------------
 function loadRegion(region){
-  const file = "data/pokedex-" + region + ".json";
-  fetch(file)
+  // Carrega o índice da região (lista de arquivos Family)
+  fetch(`data/${region}/index.json`)
     .then(r => r.json())
-    .then(data => {
-      state.pokedex = data || [];
-      // ⚙️ roda migração sempre que a pokédex é carregada
-      migrateFamiliesToBase();
+    .then(index => {
+      state.pokedex = []; // reset
+      // Carrega todas as famílias listadas
+      return Promise.all(
+        index.families.map(file =>
+          fetch(`data/${region}/${file}`).then(r => r.json())
+        )
+      );
+    })
+    .then(results => {
+      // Junta todas as famílias no state
+      results.forEach(family => {
+        if (Array.isArray(family)) {
+          state.pokedex = state.pokedex.concat(family);
+        }
+      });
       renderPokedex(region);
     })
-    .catch(() => {
-      state.pokedex = [];
+    .catch(err => {
+      console.error("Erro ao carregar região:", err);
       const box = document.querySelector(`#db-${region} .list`);
-      if (box) box.innerHTML = "<div>Nenhum Pokémon cadastrado.</div>";
+      if (box) box.innerHTML = "<div>Erro ao carregar Pokédex.</div>";
     });
 }
 
 function renderPokedex(region){
   const box = document.querySelector(`#db-${region} .list`);
-  if (!box) return;
+  if(!box) return;
   box.innerHTML = "";
   box.style.display = "grid";
   box.style.gridTemplateColumns = "repeat(10, 1fr)";
@@ -163,12 +107,10 @@ function renderPokedex(region){
   });
 }
 
-// ---------------------------
-// Modal de todas as formas (com botão Fechar)
-// ---------------------------
+// Modal de todas as formas
 function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
-  if (!forms.length) return;
+  if (forms.length === 0) return;
 
   const detailBox = document.getElementById("detailBox");
   const modal = document.getElementById("detailModal");
@@ -192,10 +134,9 @@ function showAllForms(dex){
   });
 
   if (detailBox) detailBox.innerHTML = html;
-  if (modal) modal.classList.add("show");
+  if (modal) modal.style.display = "flex";
 }
 
-// Modal de forma única (com botão Fechar)
 function setMainForm(form){
   const detailBox = document.getElementById("detailBox");
   if (detailBox) {
@@ -210,9 +151,7 @@ function setMainForm(form){
   }
 }
 
-// ---------------------------
 // Explorar & Captura
-// ---------------------------
 function explore(){
   if (state.pokedex.length === 0){
     document.getElementById("exploreResult").innerHTML = "Nenhum Pokémon nesta região.";
@@ -237,16 +176,12 @@ function tryCatch(){
 
   if (success){
     const iv = { atk: randIV(), def: randIV(), sta: randIV() };
-
-    // 🔑 chave canônica de família para salvar e somar doces
-    const familyKey = canonicalFamilyKey(
-      currentEncounter.family || currentEncounter.base || currentEncounter.dex
-    );
-    const baseName = canonicalFamilyKey(currentEncounter.base || currentEncounter.name.split(" ")[0]);
+    const family = currentEncounter.family || currentEncounter.base || currentEncounter.dex;
+    const baseName = currentEncounter.base || currentEncounter.name.split(" ")[0];
 
     const entry = {
       id: "c" + Date.now(),
-      family: familyKey,
+      family: family,
       base: baseName,
       dex: currentEncounter.dex,
       name: currentEncounter.name,
@@ -259,8 +194,7 @@ function tryCatch(){
     };
 
     state.collection.push(entry);
-    state.candies[familyKey] = (state.candies[familyKey] || 0) + 3;
-
+    state.candies[family] = (state.candies[family] || 0) + 3;
     save(); renderCollection(); renderItems();
     if (res) res.innerHTML = "✨ Capturado!";
   } else {
@@ -270,9 +204,7 @@ function tryCatch(){
 }
 function randIV(){ return Math.floor(Math.random() * 16); }
 
-// ---------------------------
-// Bag / Coleção
-// ---------------------------
+// Coleção / Bag
 function renderCollection(){
   const box = document.getElementById("collection");
   if (!box) return;
@@ -294,19 +226,17 @@ function renderCollection(){
       <img class="sprite" src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" alt="${c.name}"/>
       <div>${c.name}</div>
     `;
-    div.onclick = () => showDetails(c.id);
+    div.onclick = () => showDetails(c.id); 
     box.appendChild(div);
   });
 }
 
-// Pop-up de detalhes
+// ✅ Novo Pop-up de detalhes corrigido
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;
 
-  // usa SEMPRE a chave canônica para ler doces
-  const famKey = canonicalFamilyKey(c.family || c.base || c.dex);
-  const candies = state.candies[famKey] || 0;
+  const candies = state.candies[c.family] || 0;
   const cp = Math.floor((c.iv.atk + c.iv.def + c.iv.sta) * 10);
 
   const detailBox = document.getElementById("detailBox");
@@ -314,10 +244,7 @@ function showDetails(id){
   if (!detailBox || !modal) return;
 
   detailBox.innerHTML = `
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div style="font-weight:bold; font-size:18px;">CP ${cp}</div>
-      <button onclick="closeDetails()">Fechar ✖</button>
-    </div>
+    <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${cp}</div>
     <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
     <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
     <hr>
@@ -327,21 +254,19 @@ function showDetails(id){
     <div><b>Data de Captura:</b> ${c.capturedAt}</div>
     <div style="margin-top:10px;">
       <button onclick="transferPokemon('${c.id}')">Transferir</button>
+      <button onclick="closeDetails()">Fechar</button>
     </div>
   `;
 
-  modal.classList.add("show");
+  modal.style.display = "flex";
 }
 
 function transferPokemon(id){
   const idx = state.collection.findIndex(x => x.id === id);
   if (idx > -1){
     const p = state.collection[idx];
-    const famKey = canonicalFamilyKey(p.family || p.base || p.dex);
-
     state.collection.splice(idx, 1);
-    state.candies[famKey] = (state.candies[famKey] || 0) + 1; // +1 doce por transferência
-
+    state.candies[p.family] = (state.candies[p.family] || 0) + 1;
     save(); renderCollection(); renderItems();
     closeDetails();
     alert(p.name + " transferido! +1 doce");
@@ -352,7 +277,7 @@ function closeDetails(){
   const modal = document.getElementById("detailModal");
   const detailBox = document.getElementById("detailBox");
   if (modal){
-    modal.classList.remove("show");
+    modal.style.display = "none";
     if (detailBox) detailBox.innerHTML = "";
   }
 }
@@ -370,12 +295,7 @@ function renderItems(){
   }
 }
 
-// ---------------------------
-// Evolução (manual/temporizada)
-// ---------------------------
 function startEvolution(pokemon){
-  if (!pokemon || !pokemon.name || !pokemon.img) return;
-
   const evoText = document.getElementById("evoText");
   const evoImg  = document.getElementById("evoImg");
   const evoMod  = document.getElementById("evolutionModal");
@@ -383,6 +303,6 @@ function startEvolution(pokemon){
 
   evoText.innerText = pokemon.name + " está evoluindo...";
   evoImg.src = pokemon.img;
-  evoMod.classList.add("show");
-  setTimeout(() => { evoMod.classList.remove("show"); }, 3000);
+  evoMod.style.display = "flex";
+  setTimeout(() => { evoMod.style.display = "none"; }, 3000);
 }

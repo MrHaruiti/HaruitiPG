@@ -19,7 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Persistência
-function save(){ localStorage.setItem("pk_state", JSON.stringify(state)); }
+function save(){ 
+  localStorage.setItem("pk_state", JSON.stringify(state)); 
+}
 function load(){ 
   const s = localStorage.getItem("pk_state"); 
   if(s) {
@@ -220,4 +222,64 @@ function showDetails(id){
 
   detailBox.innerHTML = `
     <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${cp}</div>
-    <img src="${c.shiny && c.imgShiny ? c.img
+    <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
+    <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
+    <hr>
+    <div><b>Forma:</b> ${c.shiny ? "Shiny" : "Normal"}</div>
+    <div><b>Ataques:</b> (em breve)</div>
+    <div><b>${c.base} Candy:</b> ${candies}</div>
+    <div><b>Data de Captura:</b> ${c.capturedAt}</div>
+    <div style="margin-top:10px;">
+      <button onclick="transferPokemon('${c.id}')">Transferir</button>
+      <button onclick="closeDetails()">Fechar</button>
+    </div>
+  `;
+
+  modal.classList.add("show");
+}
+
+function transferPokemon(id){
+  const idx = state.collection.findIndex(x => x.id === id);
+  if (idx > -1){
+    const p = state.collection[idx];
+    state.collection.splice(idx, 1);
+    state.candies[p.family] = (state.candies[p.family] || 0) + 1;
+    save(); renderCollection(); renderItems();
+    closeDetails();
+    alert(p.name + " transferido! +1 doce");
+  }
+}
+
+function closeDetails(){
+  const modal = document.getElementById("detailModal");
+  const detailBox = document.getElementById("detailBox");
+  if (modal){
+    modal.classList.remove("show");
+    if (detailBox) detailBox.innerHTML = "";
+  }
+}
+
+function renderItems(){
+  const box = document.getElementById("items");
+  if (!box) return;
+  box.innerHTML = "";
+  if (!state.items || typeof state.items !== "object" || Object.keys(state.items).length === 0){
+    box.innerHTML = "Nenhum item.";
+    return;
+  }
+  for (const k in state.items){
+    box.innerHTML += `<div>${k}: ${state.items[k]}</div>`;
+  }
+}
+
+function startEvolution(pokemon){
+  const evoText = document.getElementById("evoText");
+  const evoImg  = document.getElementById("evoImg");
+  const evoMod  = document.getElementById("evolutionModal");
+  if (!evoText || !evoImg || !evoMod) return;
+
+  evoText.innerText = pokemon.name + " está evoluindo...";
+  evoImg.src = pokemon.img;
+  evoMod.classList.add("show");
+  setTimeout(() => { evoMod.classList.remove("show"); }, 3000);
+}

@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pokémon Fangame</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Correção: game.js está dentro da pasta /js -->
   <script src="js/game.js" defer></script>
 </head>
 <body>
 <header>
   <h1>Pokémon Fangame</h1>
-  <nav>
+  <nav class="tabs">
     <button onclick="showTab('explore')">Explorar</button>
     <button onclick="showTab('battle')">Batalha</button>
     <button onclick="showTab('database')">Database</button>
@@ -82,15 +81,15 @@
 
 <!-- Modal Detalhes -->
 <div id="detailModal" class="modal">
-  <div class="modal-content" id="detailBox">
-    <!-- conteúdo injetado pelo game.js -->
-  </div>
+  <div class="modal-content" id="detailBox"></div>
 </div>
 
 <!-- Modal Evolução -->
-<div id="evolutionModal" style="display:none;">
-  <div id="evoText">Seu Pokémon está evoluindo...</div>
-  <img id="evoImg" src="" alt="Evoluindo">
+<div id="evolutionModal" class="modal">
+  <div class="modal-content">
+    <div id="evoText">Seu Pokémon está evoluindo...</div>
+    <img id="evoImg" src="" alt="Evoluindo">
+  </div>
 </div>
 
 </body>

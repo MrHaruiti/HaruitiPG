@@ -1,5 +1,3 @@
-
-// Fixed game.js - safe and minimal changes, preserves original structure
 // Estado global
 let state = {
   pokedex: [],
@@ -7,28 +5,25 @@ let state = {
   candies: {},
   items: {}
 };
-let cpmTable = {};
-let cpmLoaded = false;
-let cpmLoadPromise = null;
+let currentEncounter = null;
 const shinyChance = 0.001;
 
-// Carregar tabela CPM (inicia carregamento, não bloqueia)
-function loadCpm() {
-  if (cpmLoadPromise) return cpmLoadPromise;
-  cpmLoadPromise = fetch("data/cpm.json")
-    .then(r => r.json())
-    .then(data => { cpmTable = data; cpmLoaded = true; })
-    .catch(err => { console.warn("Não carregou cpm.json, usando fallback", err); cpmLoaded = false; });
-  return cpmLoadPromise;
-}
-loadCpm();
+// Boot
+document.addEventListener("DOMContentLoaded", () => {
+  load();
+  showTab("explore");           
+  showSubTab("db-kanto");       
+  loadRegion("kanto");          
+  renderCollection();
+  renderItems();
+});
 
 // Persistência
 function save(){ localStorage.setItem("pk_state", JSON.stringify(state)); }
 function load(){ 
   const s = localStorage.getItem("pk_state"); 
   if(s) {
-    try { state = JSON.parse(s); } catch(e){ console.warn("erro parse state", e); }
+    state = JSON.parse(s);
     state.items = state.items && typeof state.items === "object" ? state.items : {};
     state.candies = state.candies && typeof state.candies === "object" ? state.candies : {};
     state.collection = Array.isArray(state.collection) ? state.collection : [];
@@ -55,47 +50,20 @@ function showSubTab(id){
   }
 }
 
-// Database / Pokédex - modular por famílias
+// Database / Pokédex
 function loadRegion(region){
-  const familiesByRegion = {
-    kanto: [
-      "Bulbasaur Family",
-      "Charmander Family",
-      "Squirtle Family",
-      "Pikachu Family",
-      "Eevee Family",
-      "Mew Family"
-      // adicione as outras famílias conforme for criando os arquivos
-    ],
-    // outras regiões vazias por padrão
-  };
-
-  const families = familiesByRegion[region] || [];
-  state.pokedex = [];
-
-  if (families.length === 0){
-    const box = document.querySelector(`#db-${region} .list`);
-    if (box) box.innerHTML = "<div>Nenhuma família cadastrada para essa região.</div>";
-    return;
-  }
-
-  Promise.all(
-    families.map(f => fetch(`data/${region}/${encodeURIComponent(f)}.json`).then(r => {
-      if (!r.ok) return []; 
-      return r.json();
-    }).catch(()=>[]))
-  )
-  .then(results => {
-    results.forEach(fam => {
-      if (Array.isArray(fam)) state.pokedex.push(...fam);
+  const file = "data/pokedex-" + region + ".json";
+  fetch(file)
+    .then(r => r.json())
+    .then(data => {
+      state.pokedex = data;
+      renderPokedex(region);
+    })
+    .catch(() => {
+      state.pokedex = [];
+      const box = document.querySelector(`#db-${region} .list`);
+      if (box) box.innerHTML = "<div>Nenhum Pokémon cadastrado.</div>";
     });
-    renderPokedex(region);
-  })
-  .catch(err => {
-    console.error("Erro ao carregar região:", err);
-    const box = document.querySelector(`#db-${region} .list`);
-    if (box) box.innerHTML = "<div>Erro ao carregar os Pokémon dessa região.</div>";
-  });
 }
 
 function renderPokedex(region){
@@ -140,83 +108,53 @@ function showAllForms(dex){
 
   let html = "";
   forms.forEach(f => {
-    // safe JSON stringify for onclick - avoid errors if object large
-    const fg = JSON.stringify(f).replace(/'/g,"\\'");
     html += `
       <div style="margin:6px 0; border-bottom:1px solid #333; padding:4px;">
-        <img src="${f.img}" width="48" class="clickable" onclick="setMainForm(${fg})">
-        ${f.imgShiny ? `<img src="${f.imgShiny}" width="48" class="clickable" onclick="setMainForm(${JSON.stringify({...f, shiny:true}).replace(/'/g,'\\'')})'>` : ""}
-        <b>${f.name}</b> — ${f.rarity || ''}
+        <img src="${f.img}" width="48" class="clickable" onclick='setMainForm(${JSON.stringify(f)})'>
+        ${f.imgShiny ? `<img src="${f.imgShiny}" width="48" class="clickable" onclick='setMainForm(${JSON.stringify({...f, shiny:true})})'>` : ""}
+        <b>${f.name}</b> — ${f.rarity}
       </div>
     `;
   });
 
-  const dInfoEl = document.getElementById("dInfo");
-  if (dInfoEl) dInfoEl.innerHTML = html;
-  const modal = document.getElementById("detailModal");
-  if (modal) modal.style.display = "flex";
+  if (dInfo) dInfo.innerHTML = html;
+  document.getElementById("detailModal").style.display = "flex";
 }
 
 function setMainForm(form){
-  try {
-    const dImg  = document.getElementById("dImg");
-    const dName = document.getElementById("dName");
-    if (dImg)  dImg.src = form.shiny && form.imgShiny ? form.imgShiny : form.img;
-    if (dName) dName.innerText = form.name + (form.shiny ? " ⭐" : "");
-  } catch(e){ console.warn("setMainForm error", e); }
+  const dImg  = document.getElementById("dImg");
+  const dName = document.getElementById("dName");
+  if (dImg)  dImg.src = form.shiny && form.imgShiny ? form.imgShiny : form.img;
+  if (dName) dName.innerText = form.name + (form.shiny ? " ⭐" : "");
 }
 
 // Explorar & Captura
 function explore(){
   if (state.pokedex.length === 0){
-    const el = document.getElementById("exploreResult");
-    if (el) el.innerHTML = "Nenhum Pokémon nesta região.";
+    document.getElementById("exploreResult").innerHTML = "Nenhum Pokémon nesta região.";
     return;
   }
   const p = state.pokedex[Math.floor(Math.random() * state.pokedex.length)];
   currentEncounter = { ...p };
   currentEncounter.shiny = Math.random() < shinyChance;
 
-  const resEl = document.getElementById("exploreResult");
-  if (resEl) {
-    resEl.innerHTML = `
-      <div>Encontrou ${p.name}${currentEncounter.shiny ? ' ⭐ Shiny' : ''}!</div>
-      <img src="${currentEncounter.shiny && p.imgShiny ? currentEncounter.imgShiny : p.img}" width="72"><br>
-      <button id="tryCatchBtn">Tentar Capturar</button>
-      <div id="encResult"></div>
-    `;
-    const btn = document.getElementById("tryCatchBtn");
-    if (btn) btn.onclick = tryCatch;
-  }
+  document.getElementById("exploreResult").innerHTML = `
+    <div>Encontrou ${p.name}${currentEncounter.shiny ? ' ⭐ Shiny' : ''}!</div>
+    <img src="${currentEncounter.shiny && p.imgShiny ? p.imgShiny : p.img}" width="72"><br>
+    <button onclick="tryCatch()">Tentar Capturar</button>
+    <div id="encResult"></div>
+  `;
 }
 
-function randIV(){ return Math.floor(Math.random() * 16); }
-
-async function tryCatch(){
+function tryCatch(){
   if (!currentEncounter) return;
-  const success = currentEncounter.shiny ? true : (Math.random() * 100) < (currentEncounter.baseCatch || 50);
+  const success = currentEncounter.shiny ? true : (Math.random() * 100) < currentEncounter.baseCatch;
   const res = document.getElementById("encResult");
 
   if (success){
     const iv = { atk: randIV(), def: randIV(), sta: randIV() };
     const family = currentEncounter.family || currentEncounter.base || currentEncounter.dex;
-    const baseName = currentEncounter.base || (currentEncounter.name && currentEncounter.name.split(" ")[0]);
-
-    // ensure CPM loaded (but don't block forever)
-    try {
-      await Promise.race([loadCpm(), new Promise(resr => setTimeout(resr, 300))]);
-    } catch(e){ /* passthrough */ }
-
-    // choose level (0-100)
-    const level = Math.floor(Math.random() * 101);
-    // pick stats (fallback if missing)
-    const baseStats = currentEncounter.stats || { atk: 10, def: 10, sta: 10 };
-    const cpm = (cpmTable[level] !== undefined) ? cpmTable[level] : 0.5974;
-
-    const Atk = baseStats.atk + iv.atk;
-    const Def = baseStats.def + iv.def;
-    const Sta = baseStats.sta + iv.sta;
-    const cp = Math.floor(((Atk) * Math.sqrt(Def) * Math.sqrt(Sta) * (cpm ** 2)) / 10);
+    const baseName = currentEncounter.base || currentEncounter.name.split(" ")[0];
 
     const entry = {
       id: "c" + Date.now(),
@@ -229,9 +167,7 @@ async function tryCatch(){
       imgShiny: currentEncounter.imgShiny,
       shiny: currentEncounter.shiny,
       iv,
-      level,
-      cp,
-      capturedAt: new Date().toISOString()
+      capturedAt: new Date().toLocaleString()
     };
 
     state.collection.push(entry);
@@ -243,6 +179,7 @@ async function tryCatch(){
   }
   currentEncounter = null;
 }
+function randIV(){ return Math.floor(Math.random() * 16); }
 
 // Coleção / Bag
 function renderCollection(){
@@ -261,10 +198,9 @@ function renderCollection(){
 
   state.collection.forEach(c => {
     const div = document.createElement("div");
-    div.className = "item";
+    div.className = "item clickable";
     div.innerHTML = `
       <img class="sprite" src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" alt="${c.name}"/>
-      <div class="cp-level-small">CP ${c.cp} – Lv ${c.level}</div>
       <div>${c.name}</div>
     `;
     div.onclick = () => showDetails(c.id); 
@@ -272,26 +208,27 @@ function renderCollection(){
   });
 }
 
-// Pop-up de detalhes
+// ✅ Novo Pop-up de detalhes corrigido
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;
 
   const candies = state.candies[c.family] || 0;
+  const cp = Math.floor((c.iv.atk + c.iv.def + c.iv.sta) * 10);
 
   const detailBox = document.getElementById("detailBox");
   const modal = document.getElementById("detailModal");
   if (!detailBox || !modal) return;
 
   detailBox.innerHTML = `
-    <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${c.cp} – Level ${c.level}</div>
+    <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${cp}</div>
     <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
     <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
     <hr>
     <div><b>Forma:</b> ${c.shiny ? "Shiny" : "Normal"}</div>
     <div><b>Ataques:</b> (em breve)</div>
     <div><b>${c.base} Candy:</b> ${candies}</div>
-    <div><b>Data de Captura:</b> ${new Date(c.capturedAt).toLocaleString()}</div>
+    <div><b>Data de Captura:</b> ${c.capturedAt}</div>
     <div style="margin-top:10px;">
       <button onclick="transferPokemon('${c.id}')">Transferir</button>
       <button onclick="closeDetails()">Fechar</button>
@@ -346,13 +283,3 @@ function startEvolution(pokemon){
   evoMod.style.display = "flex";
   setTimeout(() => { evoMod.style.display = "none"; }, 3000);
 }
-
-// Inicialização
-document.addEventListener("DOMContentLoaded", () => {
-  load();
-  // show initial tab same as original behavior if exists
-  const firstTab = document.querySelector(".tab");
-  if (firstTab) firstTab.style.display = "block";
-  renderCollection();
-  renderItems();
-});

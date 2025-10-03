@@ -1,0 +1,213 @@
+[
+  {
+    "dex": 1,
+    "name": "Bulbasaur",
+    "form": "normal",
+    "rarity": "Comum",
+    "baseCatch": 75,
+    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur.png",
+    "evolution": {
+      "to": "Ivysaur",
+      "cost": 25
+    },
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 1,
+    "name": "Bulbasaur (Pikachu Cap)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 75,
+    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-pikachu-cap.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-pikachu-cap.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 1,
+    "name": "Bulbasaur (Red Party Hat)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 75,
+    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-red-party-hat.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-red-party-hat.png",
+    "evolution": {
+      "to": "Ivysaur (Red Party Hat)",
+      "cost": 25
+    },
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 1,
+    "name": "Bulbasaur (Shedinja Costume)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 75,
+    "img": "https://img.pokemondb.net/sprites/go/normal/bulbasaur-shedinja.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/bulbasaur-shedinja.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 2,
+    "name": "Ivysaur",
+    "form": "normal",
+    "rarity": "Comum",
+    "baseCatch": 50,
+    "img": "https://img.pokemondb.net/sprites/go/normal/ivysaur.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/ivysaur.png",
+    "evolution": {
+      "to": "Venusaur",
+      "cost": 100
+    },
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 151,
+      "def": 143,
+      "sta": 155
+    }
+  },
+  {
+    "dex": 2,
+    "name": "Ivysaur (Red Party Hat)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 50,
+    "img": "https://img.pokemondb.net/sprites/go/normal/ivysaur-red-party-hat.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/ivysaur-red-party-hat.png",
+    "evolution": {
+      "to": "Venusaur (Red Party Hat)",
+      "cost": 100
+    },
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 3,
+    "name": "Venusaur",
+    "form": "normal",
+    "rarity": "Comum",
+    "baseCatch": 25,
+    "img": "https://img.pokemondb.net/sprites/go/normal/venusaur.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/venusaur.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 198,
+      "def": 189,
+      "sta": 190
+    }
+  },
+  {
+    "dex": 3,
+    "name": "Venusaur (Clone - Female)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 25,
+    "img": "https://img.pokemondb.net/sprites/go/normal/venusaur-clone-f.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/venusaur-clone-f.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 3,
+    "name": "Venusaur (Clone - Male)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 25,
+    "img": "https://img.pokemondb.net/sprites/go/normal/venusaur-clone.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/venusaur-clone.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 3,
+    "name": "Mega Venusaur",
+    "form": "mega",
+    "rarity": "Épico",
+    "baseCatch": 25,
+    "img": "https://img.pokemondb.net/sprites/go/normal/venusaur-mega.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/venusaur-mega.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 241,
+      "def": 246,
+      "sta": 190
+    }
+  },
+  {
+    "dex": 3,
+    "name": "Venusaur (Red Party Hat - Female)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 25,
+    "img": "https://img.pokemondb.net/sprites/go/normal/venusaur-red-party-hat-f.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/venusaur-red-party-hat-f.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 3,
+    "name": "Venusaur (Red Party Hat - Male)",
+    "form": "variant",
+    "rarity": "Incomum",
+    "baseCatch": 25,
+    "img": "https://img.pokemondb.net/sprites/go/normal/venusaur-red-party-hat.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/venusaur-red-party-hat.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  },
+  {
+    "dex": 3,
+    "name": "Venusaur (Gigantamax)",
+    "form": "gmax",
+    "rarity": "Épico",
+    "baseCatch": 25,
+    "img": "https://img.pokemondb.net/sprites/go/normal/venusaur-gigantamax.png",
+    "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/venusaur-gigantamax.png",
+    "base": "Bulbasaur",
+    "stats": {
+      "atk": 118,
+      "def": 111,
+      "sta": 128
+    }
+  }
+]

@@ -1,1 +1,6 @@
-{"name": "Kanto", "region": "Kanto", "pokemon": []}
+{
+  "families": [
+    "Bulbasaur Family.json",
+    "Charmander Family.json"
+  ]
+}

@@ -1,6 +1,3 @@
-// game.js - versão completa e robusta
-// Substitua seu game.js por este arquivo (faça backup primeiro)
-
 // Estado global
 let state = {
   pokedex: [],
@@ -24,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const detailModal = document.getElementById("detailModal");
   if (detailModal) {
     detailModal.addEventListener("click", (e) => {
-      // se clicou no overlay (não no modal-content), fecha
       if (e.target === detailModal) closeDetails();
     });
   }
@@ -44,7 +40,7 @@ function load(){
     try {
       state = JSON.parse(s);
     } catch (e) {
-      console.error("Erro ao parsear state do localStorage:", e);
+      console.error("Erro ao parsear state:", e);
       state = { pokedex:[], collection:[], candies:{}, items:{} };
     }
     state.items = state.items && typeof state.items === "object" ? state.items : {};
@@ -73,44 +69,31 @@ function showSubTab(id){
   }
 }
 
-// Database / Pokédex - Carrega por index.json que lista arquivos family
+// Database / Pokédex
 function loadRegion(region){
   const indexFile = `data/${region}/index.json`;
   console.log("Carregando index:", indexFile);
 
   fetch(indexFile)
-    .then(r => {
-      if (!r.ok) throw new Error(`index.json não encontrado (${r.status})`);
-      return r.json();
-    })
+    .then(r => r.json())
     .then(indexData => {
       if (!indexData || !Array.isArray(indexData.families)) {
-        throw new Error("index.json inválido (esperado: { families: [...] })");
+        throw new Error("index.json inválido");
       }
 
-      // monta promises para cada family (usando encodeURIComponent por segurança)
       const promises = indexData.families.map(fname =>
         fetch(`data/${region}/${encodeURIComponent(fname)}`)
-          .then(r => {
-            if (!r.ok) throw new Error(`Falha ao carregar ${fname} (${r.status})`);
-            return r.json();
-          })
+          .then(r => r.json())
       );
 
       return Promise.all(promises)
         .then(familiesArr => {
-          // familiesArr é array de arrays (cada arquivo é um array de pokémon)
           const merged = [];
-          familiesArr.forEach((fam, idx) => {
-            if (!Array.isArray(fam)) {
-              console.warn("Arquivo de family não retornou array:", indexData.families[idx]);
-              return;
-            }
-            merged.push(...fam);
+          familiesArr.forEach(fam => {
+            if (Array.isArray(fam)) merged.push(...fam);
           });
-
           state.pokedex = merged;
-          console.log(`Pokédex carregada (${region}):`, state.pokedex.length, "entradas");
+          console.log(`Pokédex carregada (${region}):`, state.pokedex.length);
           renderPokedex(region);
         });
     })
@@ -135,8 +118,7 @@ function renderPokedex(region){
   const shown = new Set();
 
   sorted.forEach(p => {
-    // Se o JSON estiver sem form, assume "normal" para compatibilidade
-    const form = p.form ? p.form : "normal";
+    const form = p.form || "normal";
     if (form === "normal" && !shown.has(p.dex)) {
       shown.add(p.dex);
       const div = document.createElement("div");
@@ -155,137 +137,104 @@ function renderPokedex(region){
   }
 }
 
-// Modal de todas as formas (garante conteúdo e botão fechar)
+// Modal de todas as formas
 function showAllForms(dex){
-  try {
-    const forms = state.pokedex.filter(p => p.dex === dex);
+  const forms = state.pokedex.filter(p => p.dex === dex);
+  if (!forms.length) return;
 
-    if (!forms || forms.length === 0) {
-      alert("Nenhuma forma encontrada para este Pokémon.");
-      return;
-    }
+  const baseName = forms[0].base || forms[0].name.split(" ")[0];
 
-    const baseName = forms[0].base || forms[0].name.split(" ")[0];
+  let html = `
+    <div style="text-align:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>${baseName} — Todas as formas</h2>
+        <button onclick="closeDetails()">Fechar ✖</button>
+      </div>
+      <div style="margin:8px 0;">
+        <img src="${forms[0].img}" width="72">
+      </div>
+      <div style="text-align:left; max-height:320px; overflow:auto; padding:6px;">
+  `;
 
-    let html = `
-      <div style="text-align:center;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <h2 style="margin:0;">${baseName} — Todas as formas</h2>
-          <button onclick="closeDetails()" style="margin-left:10px;">Fechar ✖</button>
-        </div>
-        <div style="margin:8px 0;">
-          <img src="${forms[0].img}" width="72" alt="${forms[0].name}">
-        </div>
-        <div style="text-align:left; max-height:320px; overflow:auto; padding:6px;">
-    `;
-
-    forms.forEach(f => {
-      // fallback de nomes de imagem para evitar undefined
-      const imgNormal = f.img || "";
-      const imgShiny = f.imgShiny || "";
-      const safeName = f.name || ("#" + (f.dex||"?"));
-
-      html += `
-        <div style="display:flex; align-items:center; gap:8px; padding:6px; border-bottom:1px solid #333;">
-          <img src="${imgNormal}" width="48" class="clickable" style="cursor:pointer;" onclick='setMainForm(${JSON.stringify(f)})' alt="${safeName}">
-          ${imgShiny ? `<img src="${imgShiny}" width="48" class="clickable" style="cursor:pointer;" onclick='setMainForm(${JSON.stringify({...f, shiny:true})})' alt="${safeName} Shiny">` : ""}
-          <div style="flex:1;">
-            <div style="font-weight:bold;">${safeName}</div>
-            <div style="font-size:12px; color:#bbb;">${f.rarity || ""}</div>
-          </div>
-        </div>
-      `;
-    });
-
+  forms.forEach(f => {
     html += `
-        </div>
-        <div style="margin-top:10px; text-align:center;">
-          <button onclick="closeDetails()">Fechar</button>
+      <div style="display:flex; align-items:center; gap:8px; padding:6px; border-bottom:1px solid #333;">
+        <img src="${f.img}" width="48" class="clickable" onclick='setMainForm(${JSON.stringify(f)})'>
+        ${f.imgShiny ? `<img src="${f.imgShiny}" width="48" class="clickable" onclick='setMainForm(${JSON.stringify({...f, shiny:true})})'>` : ""}
+        <div>
+          <div><b>${f.name}</b></div>
+          <div style="font-size:12px; color:#bbb;">${f.rarity || ""}</div>
         </div>
       </div>
     `;
+  });
 
-    const detailBox = document.getElementById("detailBox");
-    const modal = document.getElementById("detailModal");
-    if (detailBox) detailBox.innerHTML = html;
-    if (modal) modal.style.display = "flex";
-  } catch (e) {
-    console.error("Erro em showAllForms:", e);
-    alert("Erro ao abrir formas. Veja console para detalhes.");
-  }
+  html += `
+      </div>
+    </div>
+  `;
+
+  const detailBox = document.getElementById("detailBox");
+  const modal = document.getElementById("detailModal");
+  if (detailBox) detailBox.innerHTML = html;
+  if (modal) modal.style.display = "flex";
 }
 
 function setMainForm(form){
-  try {
-    const detailBox = document.getElementById("detailBox");
-    const modal = document.getElementById("detailModal");
-    if (!detailBox || !modal) return;
+  const detailBox = document.getElementById("detailBox");
+  const modal = document.getElementById("detailModal");
+  if (!detailBox || !modal) return;
 
-    const imgSrc = (form.shiny && form.imgShiny) ? form.imgShiny : form.img;
-    const name = form.name || "Desconhecido";
+  const imgSrc = (form.shiny && form.imgShiny) ? form.imgShiny : form.img;
 
-    const html = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="margin:0;">${name} ${form.shiny ? "⭐" : ""}</h2>
-        <button onclick="closeDetails()">Fechar ✖</button>
-      </div>
-      <hr style="border-color:#333;">
-      <div style="text-align:center; margin:10px 0;">
-        <img src="${imgSrc}" width="120" alt="${name}">
-      </div>
-      <div style="text-align:left;">
-        <div><b>Dex:</b> ${form.dex || "???"}</div>
-        <div><b>Forma:</b> ${form.form || "normal"}</div>
-        <div><b>Raridade:</b> ${form.rarity || "-"}</div>
-        ${form.evolution ? `<div><b>Evolução:</b> ${JSON.stringify(form.evolution)}</div>` : ""}
-      </div>
-      <div style="margin-top:10px; text-align:center;">
-        <button onclick="closeDetails()">Fechar</button>
-      </div>
-    `;
-    detailBox.innerHTML = html;
-    modal.style.display = "flex";
-  } catch (e) {
-    console.error("Erro em setMainForm:", e);
-  }
+  detailBox.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>${form.name} ${form.shiny ? "⭐" : ""}</h2>
+      <button onclick="closeDetails()">Fechar ✖</button>
+    </div>
+    <div style="text-align:center; margin:10px 0;">
+      <img src="${imgSrc}" width="120">
+    </div>
+    <div style="text-align:left;">
+      <div><b>Dex:</b> ${form.dex}</div>
+      <div><b>Forma:</b> ${form.form || "normal"}</div>
+      <div><b>Raridade:</b> ${form.rarity}</div>
+    </div>
+  `;
+  modal.style.display = "flex";
 }
 
 // Explorar & Captura
 function explore(){
-  if (state.pokedex.length === 0){
-    const el = document.getElementById("exploreResult");
-    if (el) el.innerHTML = "Nenhum Pokémon nesta região.";
+  if (!state.pokedex.length){
+    document.getElementById("exploreResult").innerHTML = "Nenhum Pokémon nesta região.";
     return;
   }
   const p = state.pokedex[Math.floor(Math.random() * state.pokedex.length)];
   currentEncounter = { ...p };
   currentEncounter.shiny = Math.random() < shinyChance;
 
-  const el = document.getElementById("exploreResult");
-  if (el) {
-    el.innerHTML = `
-      <div>Encontrou ${p.name}${currentEncounter.shiny ? ' ⭐ Shiny' : ''}!</div>
-      <img src="${currentEncounter.shiny && p.imgShiny ? p.imgShiny : p.img}" width="72"><br>
-      <button onclick="tryCatch()">Tentar Capturar</button>
-      <div id="encResult"></div>
-    `;
-  }
+  document.getElementById("exploreResult").innerHTML = `
+    <div>Encontrou ${p.name}${currentEncounter.shiny ? ' ⭐ Shiny' : ''}!</div>
+    <img src="${currentEncounter.shiny && p.imgShiny ? p.imgShiny : p.img}" width="72"><br>
+    <button onclick="tryCatch()">Tentar Capturar</button>
+    <div id="encResult"></div>
+  `;
 }
 
 function tryCatch(){
   if (!currentEncounter) return;
-  const success = currentEncounter.shiny ? true : (Math.random() * 100) < (currentEncounter.baseCatch || 0);
+  const success = currentEncounter.shiny ? true : (Math.random() * 100) < (currentEncounter.baseCatch || 50);
   const res = document.getElementById("encResult");
 
   if (success){
     const iv = { atk: randIV(), def: randIV(), sta: randIV() };
     const family = currentEncounter.family || currentEncounter.base || currentEncounter.dex;
-    const baseName = currentEncounter.base || currentEncounter.name.split(" ")[0];
 
     const entry = {
       id: "c" + Date.now(),
       family: family,
-      base: baseName,
+      base: currentEncounter.base || currentEncounter.name.split(" ")[0],
       dex: currentEncounter.dex,
       name: currentEncounter.name,
       rarity: currentEncounter.rarity,
@@ -317,7 +266,7 @@ function renderCollection(){
   box.style.gap = "10px";
   box.style.textAlign = "center";
 
-  if (state.collection.length === 0){
+  if (!state.collection.length){
     box.innerHTML = "Nenhum Pokémon ainda.";
     return;
   }
@@ -334,13 +283,11 @@ function renderCollection(){
   });
 }
 
-// Detalhes com botão fechar
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;
 
-  const famKey = c.family || c.base || c.dex;
-  const candies = state.candies[famKey] || 0;
+  const candies = state.candies[c.family] || 0;
   const cp = Math.floor((c.iv.atk + c.iv.def + c.iv.sta) * 10);
 
   const detailBox = document.getElementById("detailBox");
@@ -353,16 +300,9 @@ function showDetails(id){
       <button onclick="closeDetails()">Fechar ✖</button>
     </div>
     <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
-    <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
-    <hr>
     <div><b>Forma:</b> ${c.shiny ? "Shiny" : "Normal"}</div>
-    <div><b>Ataques:</b> (em breve)</div>
     <div><b>${c.base} Candy:</b> ${candies}</div>
     <div><b>Data de Captura:</b> ${c.capturedAt}</div>
-    <div style="margin-top:10px;">
-      <button onclick="transferPokemon('${c.id}')">Transferir</button>
-      <button onclick="closeDetails()">Fechar</button>
-    </div>
   `;
 
   modal.style.display = "flex";
@@ -372,9 +312,8 @@ function transferPokemon(id){
   const idx = state.collection.findIndex(x => x.id === id);
   if (idx > -1){
     const p = state.collection[idx];
-    const famKey = p.family || p.base || p.dex;
     state.collection.splice(idx, 1);
-    state.candies[famKey] = (state.candies[famKey] || 0) + 1;
+    state.candies[p.family] = (state.candies[p.family] || 0) + 1;
     save(); renderCollection(); renderItems();
     closeDetails();
     alert(p.name + " transferido! +1 doce");
@@ -394,7 +333,7 @@ function renderItems(){
   const box = document.getElementById("items");
   if (!box) return;
   box.innerHTML = "";
-  if (!state.items || typeof state.items !== "object" || Object.keys(state.items).length === 0){
+  if (!state.items || !Object.keys(state.items).length){
     box.innerHTML = "Nenhum item.";
     return;
   }

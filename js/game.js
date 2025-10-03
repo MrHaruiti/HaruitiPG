@@ -11,9 +11,9 @@ const shinyChance = 0.001;
 // Boot
 document.addEventListener("DOMContentLoaded", () => {
   load();
-  showTab("explore");           
-  showSubTab("db-kanto");       
-  loadRegion("kanto");          
+  showTab("explore");
+  showSubTab("db-kanto");
+  loadRegion("kanto");
   renderCollection();
   renderItems();
 });
@@ -52,29 +52,32 @@ function showSubTab(id){
 
 // Database / Pokédex
 function loadRegion(region){
-  // Carrega o índice da região (lista de arquivos Family)
-  fetch(`data/${region}/index.json`)
+  const indexFile = `data/${region}/index.json`;
+
+  fetch(indexFile)
     .then(r => r.json())
-    .then(index => {
-      state.pokedex = []; // reset
-      // Carrega todas as famílias listadas
-      return Promise.all(
-        index.families.map(file =>
-          fetch(`data/${region}/${file}`).then(r => r.json())
-        )
+    .then(indexData => {
+      if (!indexData.families) throw new Error("Index sem families");
+
+      let promises = indexData.families.map(f => 
+        fetch(`data/${region}/${f}`).then(r => r.json())
       );
-    })
-    .then(results => {
-      // Junta todas as famílias no state
-      results.forEach(family => {
-        if (Array.isArray(family)) {
-          state.pokedex = state.pokedex.concat(family);
-        }
-      });
-      renderPokedex(region);
+
+      Promise.all(promises)
+        .then(families => {
+          state.pokedex = families.flat(); // junta todos os Pokémon das famílias
+          renderPokedex(region);
+        })
+        .catch(err => {
+          console.error("Erro carregando families:", err);
+          state.pokedex = [];
+          const box = document.querySelector(`#db-${region} .list`);
+          if (box) box.innerHTML = "<div>Erro ao carregar famílias.</div>";
+        });
     })
     .catch(err => {
-      console.error("Erro ao carregar região:", err);
+      console.error("Erro carregando index:", err);
+      state.pokedex = [];
       const box = document.querySelector(`#db-${region} .list`);
       if (box) box.innerHTML = "<div>Erro ao carregar Pokédex.</div>";
     });
@@ -112,17 +115,15 @@ function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
   if (forms.length === 0) return;
 
-  const detailBox = document.getElementById("detailBox");
-  const modal = document.getElementById("detailModal");
+  const baseName = forms[0].base || forms[0].name.split(" ")[0];
+  const dName = document.getElementById("dName");
+  const dImg  = document.getElementById("dImg");
+  const dInfo = document.getElementById("dInfo");
 
-  let html = `
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2>${forms[0].base || forms[0].name} — Todas as formas</h2>
-      <button onclick="closeDetails()">Fechar ✖</button>
-    </div>
-    <hr>
-  `;
+  if (dName) dName.innerText = `${baseName} — Todas as formas`;
+  if (dImg)  dImg.src = forms[0].img;
 
+  let html = "";
   forms.forEach(f => {
     html += `
       <div style="margin:6px 0; border-bottom:1px solid #333; padding:4px;">
@@ -133,22 +134,15 @@ function showAllForms(dex){
     `;
   });
 
-  if (detailBox) detailBox.innerHTML = html;
-  if (modal) modal.style.display = "flex";
+  if (dInfo) dInfo.innerHTML = html;
+  document.getElementById("detailModal").style.display = "flex";
 }
 
 function setMainForm(form){
-  const detailBox = document.getElementById("detailBox");
-  if (detailBox) {
-    detailBox.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2>${form.name} ${form.shiny ? "⭐" : ""}</h2>
-        <button onclick="closeDetails()">Fechar ✖</button>
-      </div>
-      <hr>
-      <img src="${form.shiny && form.imgShiny ? form.imgShiny : form.img}" width="96" style="margin:10px 0;">
-    `;
-  }
+  const dImg  = document.getElementById("dImg");
+  const dName = document.getElementById("dName");
+  if (dImg)  dImg.src = form.shiny && form.imgShiny ? form.imgShiny : form.img;
+  if (dName) dName.innerText = form.name + (form.shiny ? " ⭐" : "");
 }
 
 // Explorar & Captura

@@ -98,15 +98,10 @@ function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
   if (forms.length === 0) return;
 
-  const baseName = forms[0].base || forms[0].name.split(" ")[0];
-  const dName = document.getElementById("dName");
-  const dImg  = document.getElementById("dImg");
-  const dInfo = document.getElementById("dInfo");
+  const detailBox = document.getElementById("detailBox");
+  const modal = document.getElementById("detailModal");
 
-  if (dName) dName.innerText = `${baseName} — Todas as formas`;
-  if (dImg)  dImg.src = forms[0].img;
-
-  let html = "";
+  let html = `<h2>${forms[0].base || forms[0].name}</h2>`;
   forms.forEach(f => {
     html += `
       <div style="margin:6px 0; border-bottom:1px solid #333; padding:4px;">
@@ -117,15 +112,18 @@ function showAllForms(dex){
     `;
   });
 
-  if (dInfo) dInfo.innerHTML = html;
-  document.getElementById("detailModal").style.display = "flex";
+  if (detailBox) detailBox.innerHTML = html;
+  if (modal) modal.classList.add("show");
 }
 
 function setMainForm(form){
-  const dImg  = document.getElementById("dImg");
-  const dName = document.getElementById("dName");
-  if (dImg)  dImg.src = form.shiny && form.imgShiny ? form.imgShiny : form.img;
-  if (dName) dName.innerText = form.name + (form.shiny ? " ⭐" : "");
+  const detailBox = document.getElementById("detailBox");
+  if (detailBox) {
+    detailBox.innerHTML = `
+      <img src="${form.shiny && form.imgShiny ? form.imgShiny : form.img}" width="96">
+      <div><b>${form.name}</b> ${form.shiny ? "⭐" : ""}</div>
+    `;
+  }
 }
 
 // Explorar & Captura
@@ -208,7 +206,7 @@ function renderCollection(){
   });
 }
 
-// ✅ Novo Pop-up de detalhes corrigido
+// Pop-up de detalhes
 function showDetails(id){
   const c = state.collection.find(x => x.id === id);
   if (!c) return;
@@ -222,64 +220,4 @@ function showDetails(id){
 
   detailBox.innerHTML = `
     <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${cp}</div>
-    <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
-    <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
-    <hr>
-    <div><b>Forma:</b> ${c.shiny ? "Shiny" : "Normal"}</div>
-    <div><b>Ataques:</b> (em breve)</div>
-    <div><b>${c.base} Candy:</b> ${candies}</div>
-    <div><b>Data de Captura:</b> ${c.capturedAt}</div>
-    <div style="margin-top:10px;">
-      <button onclick="transferPokemon('${c.id}')">Transferir</button>
-      <button onclick="closeDetails()">Fechar</button>
-    </div>
-  `;
-
-  modal.style.display = "flex";
-}
-
-function transferPokemon(id){
-  const idx = state.collection.findIndex(x => x.id === id);
-  if (idx > -1){
-    const p = state.collection[idx];
-    state.collection.splice(idx, 1);
-    state.candies[p.family] = (state.candies[p.family] || 0) + 1;
-    save(); renderCollection(); renderItems();
-    closeDetails();
-    alert(p.name + " transferido! +1 doce");
-  }
-}
-
-function closeDetails(){
-  const modal = document.getElementById("detailModal");
-  const detailBox = document.getElementById("detailBox");
-  if (modal){
-    modal.style.display = "none";
-    if (detailBox) detailBox.innerHTML = "";
-  }
-}
-
-function renderItems(){
-  const box = document.getElementById("items");
-  if (!box) return;
-  box.innerHTML = "";
-  if (!state.items || typeof state.items !== "object" || Object.keys(state.items).length === 0){
-    box.innerHTML = "Nenhum item.";
-    return;
-  }
-  for (const k in state.items){
-    box.innerHTML += `<div>${k}: ${state.items[k]}</div>`;
-  }
-}
-
-function startEvolution(pokemon){
-  const evoText = document.getElementById("evoText");
-  const evoImg  = document.getElementById("evoImg");
-  const evoMod  = document.getElementById("evolutionModal");
-  if (!evoText || !evoImg || !evoMod) return;
-
-  evoText.innerText = pokemon.name + " está evoluindo...";
-  evoImg.src = pokemon.img;
-  evoMod.style.display = "flex";
-  setTimeout(() => { evoMod.style.display = "none"; }, 3000);
-}
+    <img src="${c.shiny && c.imgShiny ? c.img

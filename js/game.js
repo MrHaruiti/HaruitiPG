@@ -95,7 +95,7 @@ function renderPokedex(region){
   });
 }
 
-// Modal de todas as formas
+// Modal de todas as formas (corrigido com botão Fechar)
 function showAllForms(dex){
   const forms = state.pokedex.filter(p => p.dex === dex);
   if (forms.length === 0) return;
@@ -103,7 +103,14 @@ function showAllForms(dex){
   const detailBox = document.getElementById("detailBox");
   const modal = document.getElementById("detailModal");
 
-  let html = `<h2>${forms[0].base || forms[0].name}</h2>`;
+  let html = `
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>${forms[0].base || forms[0].name} — Todas as formas</h2>
+      <button onclick="closeDetails()">Fechar ✖</button>
+    </div>
+    <hr>
+  `;
+
   forms.forEach(f => {
     html += `
       <div style="margin:6px 0; border-bottom:1px solid #333; padding:4px;">
@@ -124,6 +131,9 @@ function setMainForm(form){
     detailBox.innerHTML = `
       <img src="${form.shiny && form.imgShiny ? form.imgShiny : form.img}" width="96">
       <div><b>${form.name}</b> ${form.shiny ? "⭐" : ""}</div>
+      <div style="margin-top:10px;">
+        <button onclick="closeDetails()">Fechar</button>
+      </div>
     `;
   }
 }
@@ -221,7 +231,10 @@ function showDetails(id){
   if (!detailBox || !modal) return;
 
   detailBox.innerHTML = `
-    <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${cp}</div>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-weight:bold; font-size:18px;">CP ${cp}</div>
+      <button onclick="closeDetails()">Fechar ✖</button>
+    </div>
     <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
     <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
     <hr>
@@ -231,7 +244,6 @@ function showDetails(id){
     <div><b>Data de Captura:</b> ${c.capturedAt}</div>
     <div style="margin-top:10px;">
       <button onclick="transferPokemon('${c.id}')">Transferir</button>
-      <button onclick="closeDetails()">Fechar</button>
     </div>
   `;
 
@@ -272,7 +284,10 @@ function renderItems(){
   }
 }
 
+// Evolução
 function startEvolution(pokemon){
+  if (!pokemon || !pokemon.name || !pokemon.img) return;
+
   const evoText = document.getElementById("evoText");
   const evoImg  = document.getElementById("evoImg");
   const evoMod  = document.getElementById("evolutionModal");

@@ -1,195 +1,178 @@
-
-/* Fixed style.css - preserves original content and only adds cp-level-small styling */
-
 body {
-  background-color: #121212;
-  color: #e0e0e0;
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
+    background-color: #121212;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 .tabs {
-  display: flex;
-  justify-content: center;
-  background-color: #1e1e1e;
-  padding: 10px;
+    display: flex;
+    justify-content: center;
+    background-color: #1e1e1e;
+    padding: 10px;
 }
 
 .tabs button {
-  background-color: #333;
-  color: #e0e0e0;
-  border: none;
-  padding: 10px 20px;
-  margin: 0 5px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+    background-color: #333;
+    color: #e0e0e0;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 .tabs button:hover {
-  background-color: #555;
+    background-color: #555;
 }
 
 .tab {
-  display: none;
-  padding: 20px;
+    display: none;
+    padding: 20px;
 }
 
 .card {
-  background-color: #1e1e1e;
-  padding: 20px;
-  margin: 10px auto;
-  border-radius: 10px;
-  max-width: 800px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background-color: #1e1e1e;
+    padding: 20px;
+    margin: 10px auto;
+    border-radius: 10px;
+    max-width: 800px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 .subtabs {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
 }
 
 .subtabs button {
-  background-color: #333;
-  color: #e0e0e0;
-  border: none;
-  padding: 8px 15px;
-  margin: 0 3px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+    background-color: #333;
+    color: #e0e0e0;
+    border: none;
+    padding: 8px 15px;
+    margin: 0 3px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 .subtabs button:hover {
-  background-color: #555;
+    background-color: #555;
 }
 
 .list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .list .item {
-  background-color: #2c2c2c;
-  border: 1px solid #444;
-  border-radius: 8px;
-  margin: 5px;
-  padding: 10px;
-  width: 120px;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    margin: 5px;
+    padding: 10px;
+    width: 120px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
 .list .item:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .sprite {
-  width: 72px;
-  height: 72px;
+    width: 72px;
+    height: 72px;
 }
 
 #collection {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 #collection .item {
-  background-color: #2c2c2c;
-  border: 1px solid #444;
-  border-radius: 8px;
-  margin: 5px;
-  padding: 10px;
-  width: 100px;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    margin: 5px;
+    padding: 10px;
+    width: 100px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
 #collection .item:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 #items {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 #items div {
-  background-color: #2c2c2c;
-  border: 1px solid #444;
-  border-radius: 8px;
-  margin: 5px;
-  padding: 10px;
-  width: 120px;
-  text-align: center;
+    background-color: #2c2c2c;
+    border: 1px solid #444;
+    border-radius: 8px;
+    margin: 5px;
+    padding: 10px;
+    width: 120px;
+    text-align: center;
 }
 
-/* Corrigido: estilo aplicado só na caixa do modal */
+/* 🔥 Corrigido: aplicando estilo só à caixa do modal, sem margin:auto */
 #detailModal .modal-content {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 400px;
-  width: 90%;
-  border: 1px solid #333;
-  text-align: center;
+    background-color: #1e1e1e;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 400px;
+    border: 1px solid #333;
 }
 
 button {
-  background-color: #333;
-  color: #e0e0e0;
-  border: none;
-  padding: 8px 15px;
-  margin: 5px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+    background-color: #333;
+    color: #e0e0e0;
+    border: none;
+    padding: 8px 15px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #555;
+    background-color: #555;
 }
 
-/* Novo bloco para centralizar modal */
+/* 🔥 Novo bloco para centralizar modal */
 .modal {
-  display: none;
-  position: fixed;
-  z-index: 10000;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-content {
-  background: #1e1e1e;   /* fundo escuro */
-  color: #e0e0e0;        /* texto claro */
-  border: 1px solid #333;
-  border-radius: 10px;
-  padding: 20px;
-  max-width: 380px;
-  width: 90%;
-  text-align: center;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 20px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
 }
-
-/* New: small CP label under sprite in bag */
-.cp-level-small {
-  font-size: 11px;
-  color: #cfcfcf;
-  margin-top: 6px;
-  text-align: center;
-}
-
-/* existing styles below unchanged... */

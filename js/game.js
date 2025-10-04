@@ -8,7 +8,8 @@ let state = {
   pokedex: [],
   collection: [],
   candies: {},
-  items: {}
+  items: {},
+  cpmTable: null
 };
 let currentEncounter = null;
 const shinyChance = 0.001;
@@ -16,7 +17,8 @@ const shinyChance = 0.001;
 // =========================
 // BOOT
 // =========================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadCPM();
   load();
   showTab("explore");
   showSubTab("db-kanto");
@@ -24,6 +26,23 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCollection();
   renderItems();
 });
+
+// =========================
+// CARREGAR TABELA CPM
+// =========================
+async function loadCPM() {
+  try {
+    const res = await fetch('data/cpm.json');
+    state.cpmTable = await res.json();
+  } catch (e) {
+    console.error("Erro ao carregar CPM:", e);
+    // Fallback: cria tabela básica se não conseguir carregar
+    state.cpmTable = {};
+    for (let i = 0; i <= 100; i++) {
+      state.cpmTable[i] = 0.094 + (i * 0.0158);
+    }
+  }
+}
 
 // =========================
 // PERSISTÊNCIA
@@ -250,11 +269,63 @@ function explore() {
 }
 
 function calcCP(poke) {
-  const atk = poke.stats?.atk || 100;
-  const def = poke.stats?.def || 100;
-  const sta = poke.stats?.sta || 100;
-  const base = atk + def + sta;
-  return Math.floor((base / 10) * (poke.level || 1)) + Math.floor(Math.random() * 20);
+  // Aguarda tabela CPM estar carregada
+  if (!state.cpmTable) {
+    console.warn("Tabela CPM não carregada ainda");
+    return 10;
+  }
+
+  // Stats base
+  const baseAtk = poke.stats?.atk || 100;
+  const baseDef = poke.stats?.def || 100;
+  const baseSta = poke.stats?.sta || 100;
+  
+  // IVs (Individual Values) - valores aleatórios 0-15 se não existirem
+  const atkIV = poke.iv?.atk !== undefined ? poke.iv.atk : Math.floor(Math.random() * 16);
+  const defIV = poke.iv?.def !== undefined ? poke.iv.def : Math.floor(Math.random() * 16);
+  const staIV = poke.iv?.sta !== undefined ? poke.iv.sta : Math.floor(Math.random() * 16);
+  
+  // Armazena IVs no Pokémon se não existirem
+  if (!poke.iv) {
+    poke.iv = { atk: atkIV, def: defIV, sta: staIV };
+  }
+  
+  // Level do Pokémon (1-100 normal, ou temporário 102/105/110)
+  let level = poke.level || 1;
+  
+  // Aplica boost temporário baseado na forma
+  if (poke.tempForm) {
+    if (poke.tempForm === 'mega') level = 110;
+    else if (poke.tempForm === 'gmax') level = 105;
+    else if (poke.tempForm === 'dynamax') level = 102;
+  }
+  
+  // Limita level entre 1-110
+  level = Math.max(1, Math.min(110, level));
+  
+  // Busca CPM da tabela (se level > 100, extrapola linearmente)
+  let CPM;
+  if (level <= 100) {
+    CPM = state.cpmTable[level.toString()] || state.cpmTable[Math.floor(level)];
+  } else {
+    // Extrapolação linear para levels 101-110
+    const cpm100 = state.cpmTable["100"];
+    const increment = 0.02; // Incremento estimado por level acima de 100
+    CPM = cpm100 + ((level - 100) * increment);
+  }
+  
+  // Stats totais (base + IV)
+  const totalAtk = baseAtk + atkIV;
+  const totalDef = baseDef + defIV;
+  const totalSta = baseSta + staIV;
+  
+  // Fórmula oficial do Pokémon GO
+  const cp = Math.floor(
+    (totalAtk * Math.sqrt(totalDef) * Math.sqrt(totalSta) * Math.pow(CPM, 2)) / 10
+  );
+  
+  // CP mínimo é 10
+  return Math.max(10, cp);
 }
 
 function tryCatch() {
@@ -341,20 +412,164 @@ function showDetails(idx) {
 
   const family = p.base || p.name.toLowerCase().replace(/\s+/g, "");
   const candyCount = state.candies[family] || 0;
+  const currentLevel = p.baseLevel || p.level || 1;
+  const isMaxLevel = currentLevel >= 100;
 
-  dName.innerText = `${p.name} Lv.${p.level || 1} (CP ${p.cp})`;
+  dName.innerText = `${p.name} Lv.${currentLevel} (CP ${p.cp})`;
   dImg.src = p.img;
   dImg.alt = p.name;
+  
+  // Mostra IVs se existirem
+  const ivText = p.iv ? `IVs: ${p.iv.atk}/${p.iv.def}/${p.iv.sta}` : '';
+  
   dInfo.innerHTML = `
     <p>Raridade: ${p.rarity}</p>
     <p>Stats: Atk ${p.stats?.atk || 'N/A'}, Def ${p.stats?.def || 'N/A'}, Sta ${p.stats?.sta || 'N/A'}</p>
+    ${ivText ? `<p>${ivText}</p>` : ''}
     <p>Doces de ${family}: ${candyCount}</p>
     <div style="margin:10px 0;">
-      <button onclick="trainPokemon(${idx})">Treinar (+1 Level, 5 doces)</button>
+      <button onclick="trainPokemon(${idx})" ${isMaxLevel ? 'disabled' : ''}>
+        Treinar (+1 Level, 5 doces) ${isMaxLevel ? '(MAX)' : ''}
+      </button>
       <button onclick="startEvolution(${idx})">Evoluir (se possível)</button>
     </div>
+    ${isMaxLevel ? `
+      <div style="margin-top:15px; padding:10px; background:#2c2c2c; border-radius:8px;">
+        <h4 style="color:#FFD700; margin:5px 0;">Formas Especiais (Level 100)</h4>
+        <button onclick="activateMega(${idx})" style="background:#9c27b0;">Mega Evolution</button>
+        <button onclick="activateGmax(${idx})" style="background:#f44336;">Gigantamax</button>
+        <button onclick="activateDynamax(${idx})" style="background:#ff9800;">Dynamax</button>
+        ${p.tempForm ? `<button onclick="deactivateSpecialForm(${idx})" style="background:#666;">Desativar</button>` : ''}
+      </div>
+    ` : ''}
   `;
   modal.style.display = "flex";
+}
+
+// =========================
+// FORMAS ESPECIAIS (LEVEL 100+)
+// =========================
+function activateMega(idx) {
+  const p = state.collection[idx];
+  if (!p || (p.baseLevel || p.level) < 100) {
+    alert("Apenas Pokémon level 100 podem Mega Evoluir!");
+    return;
+  }
+  
+  // Verifica se tem forma mega disponível
+  const megaForm = state.pokedex.find(pk => 
+    pk.base === p.base && (pk.form === 'mega' || pk.form === 'mega-x' || pk.form === 'mega-y')
+  );
+  
+  if (!megaForm) {
+    alert(`${p.name} não possui Mega Evolução!`);
+    return;
+  }
+  
+  // Salva dados originais e aplica mega
+  if (!p.originalData) {
+    p.originalData = {
+      name: p.name,
+      img: p.img,
+      stats: {...p.stats},
+      level: p.level
+    };
+  }
+  
+  p.tempForm = 'mega';
+  p.name = megaForm.name;
+  p.img = megaForm.img;
+  p.stats = {...megaForm.stats};
+  p.level = 110;
+  p.cp = calcCP(p);
+  
+  save();
+  renderCollection();
+  showDetails(idx);
+}
+
+function activateGmax(idx) {
+  const p = state.collection[idx];
+  if (!p || (p.baseLevel || p.level) < 100) {
+    alert("Apenas Pokémon level 100 podem usar Gigantamax!");
+    return;
+  }
+  
+  const gmaxForm = state.pokedex.find(pk => 
+    pk.base === p.base && pk.form === 'gmax'
+  );
+  
+  if (!gmaxForm) {
+    alert(`${p.name} não possui forma Gigantamax!`);
+    return;
+  }
+  
+  if (!p.originalData) {
+    p.originalData = {
+      name: p.name,
+      img: p.img,
+      stats: {...p.stats},
+      level: p.level
+    };
+  }
+  
+  p.tempForm = 'gmax';
+  p.name = gmaxForm.name;
+  p.img = gmaxForm.img;
+  p.stats = {...gmaxForm.stats};
+  p.level = 105;
+  p.cp = calcCP(p);
+  
+  save();
+  renderCollection();
+  showDetails(idx);
+}
+
+function activateDynamax(idx) {
+  const p = state.collection[idx];
+  if (!p || (p.baseLevel || p.level) < 100) {
+    alert("Apenas Pokémon level 100 podem usar Dynamax!");
+    return;
+  }
+  
+  // Dynamax não muda aparência, só aumenta stats
+  if (!p.originalData) {
+    p.originalData = {
+      stats: {...p.stats},
+      level: p.level
+    };
+  }
+  
+  p.tempForm = 'dynamax';
+  p.level = 102;
+  // Dynamax aumenta HP (sta) em 2x
+  p.stats.sta = (p.originalData.stats.sta || p.stats.sta) * 2;
+  p.cp = calcCP(p);
+  
+  save();
+  renderCollection();
+  showDetails(idx);
+}
+
+function deactivateSpecialForm(idx) {
+  const p = state.collection[idx];
+  if (!p || !p.tempForm) return;
+  
+  // Restaura dados originais
+  if (p.originalData) {
+    if (p.originalData.name) p.name = p.originalData.name;
+    if (p.originalData.img) p.img = p.originalData.img;
+    p.stats = {...p.originalData.stats};
+    p.level = p.baseLevel || p.originalData.level;
+  }
+  
+  p.tempForm = null;
+  delete p.originalData;
+  p.cp = calcCP(p);
+  
+  save();
+  renderCollection();
+  showDetails(idx);
 }
 
 // =========================
@@ -368,8 +583,17 @@ function trainPokemon(idx) {
     alert("Você precisa de pelo menos 5 doces para treinar!");
     return;
   }
+  
+  // Verifica level máximo (100 para treino normal)
+  const currentLevel = p.baseLevel || p.level || 1;
+  if (currentLevel >= 100) {
+    alert("Este Pokémon já atingiu o level máximo (100)!");
+    return;
+  }
+  
   state.candies[family] -= 5;
-  p.level = (p.level || 1) + 1;
+  p.baseLevel = currentLevel + 1;  // Armazena level real
+  p.level = p.baseLevel;  // Level atual (pode ser temporário com mega/gmax)
   p.cp = calcCP(p);
   save();
   renderCollection();

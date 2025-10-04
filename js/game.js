@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-8 - COMPLETO C/ MEGA EVOLUÇÃO CORRIGIDA
-console.log(">>> GAMEJS LOADED: v2025-10-04-8 - COMPLETO C/ MEGA EVOLUÇÃO CORRIGIDA");
+// >>> GAMEJS LOADED: v2025-10-04-9 - COMPLETO C/ NORMALIZAÇÃO DE DOCES
+console.log(">>> GAMEJS LOADED: v2025-10-04-9 - COMPLETO C/ NORMALIZAÇÃO DE DOCES");
 
 // =========================
 // ESTADO GLOBAL
@@ -21,7 +21,6 @@ let state = {
         "36": 0.801772, "37": 0.812903, "38": 0.823899, "39": 0.834768, "40": 0.845517,
         "41": 0.856154, "42": 0.866686, "43": 0.877119, "44": 0.887459, "45": 0.897711,
         "46": 0.907879, "47": 0.917968, "48": 0.927983, "49": 0.937929, "50": 0.947812,
-        // Níveis 51 a 100 (extrapolados em passos de 1 para o seu modelo)
         "51": 0.957636, "52": 0.967406, "53": 0.977126, "54": 0.986800, "55": 0.996431,
         "56": 1.006020, "57": 1.015570, "58": 1.025083, "59": 1.034560, "60": 1.044005,
         "61": 1.053417, "62": 1.062800, "63": 1.072153, "64": 1.081479, "65": 1.090778,
@@ -47,8 +46,20 @@ console.log("✅ Tabela CPM carregada:", Object.keys(state.cpmTable).length, "n�
 function getCandyFamily(p) {
     const baseName = p.base || p.name;
     // Pega o campo 'base' ou 'name', converte para minúsculas e pega apenas a primeira palavra 
-    // (ex: "Charmander Pikachu Cap" -> "charmander")
     return baseName.toLowerCase().split(' ')[0]; 
+}
+
+// Funções de limpeza de estado
+function normalizeCandies() {
+    const newCandies = {};
+    for (const key in state.candies) {
+        if (state.candies.hasOwnProperty(key)) {
+            const lowerKey = key.toLowerCase();
+            // Soma o valor do doce atual ao valor existente na nova chave minúscula
+            newCandies[lowerKey] = (newCandies[lowerKey] || 0) + state.candies[key];
+        }
+    }
+    state.candies = newCandies;
 }
 
 // Gerar nível aleatório entre 1 e 50 (se necessário)
@@ -85,9 +96,9 @@ function load() {
     if (s) {
         try {
             state = JSON.parse(s);
-            // Mantém a tabela CPM corrigida para evitar erros de leitura de versões antigas
+            // Verifica e recarrega a tabela CPM se necessário (proteção contra dados antigos)
             if (!state.cpmTable || Object.keys(state.cpmTable).length < 100) {
-                 state.cpmTable = { // Recarrega a tabela correta se a salva estiver ruim
+                 state.cpmTable = { 
                     "1": 0.094000, "2": 0.166398, "3": 0.215732, "4": 0.255720, "5": 0.290250,
                     "6": 0.320858, "7": 0.349213, "8": 0.375236, "9": 0.399567, "10": 0.422500,
                     "11": 0.443107, "12": 0.462798, "13": 0.481685, "14": 0.499858, "15": 0.517394,
@@ -118,6 +129,9 @@ function load() {
         state.candies = state.candies || {};
         state.collection = state.collection || [];
         state.pokedex = state.pokedex || [];
+        
+        // NOVO: Normaliza as chaves de doces para minúsculas
+        normalizeCandies();
     }
 }
 
@@ -410,7 +424,7 @@ function tryCatch() {
         const caught = { ...currentEncounter, caughtAt: Date.now() };
         state.collection.push(caught);
         
-        // LÓGICA DE DOCES CORRIGIDA: Usa o nome base do Pokémon
+        // LÓGICA DE DOCES: Usa o nome base do Pokémon, já em minúsculas (via getCandyFamily)
         const family = getCandyFamily(caught);
         
         let candyAmount = 5;
@@ -437,7 +451,7 @@ function tryCatch() {
           <h3>🎉 Capturado com sucesso!</h3>
           <p>${caught.name} ${caught.shiny ? '⭐' : ''} (CP ${caught.cp}) adicionado à coleção</p>
           <p>+${candyAmount} doces de ${family}</p>
-          <button onclick="explore()" style="background:#4CAF50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:16px;">Explorar Mais</button>
+          <button onclick="explore()" style="background:#4CAF50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Explorar Mais</button>
         </div>`;
         renderCollection();
         renderItems();
@@ -481,6 +495,7 @@ function renderCollection() {
 function renderItems() {
     const box = document.getElementById("items");
     if (!box) return;
+    // As chaves agora estão unificadas para minúsculas graças à load() e normalizeCandies()
     const candyKeys = Object.keys(state.candies).filter(k => state.candies[k] > 0);
 
     if (candyKeys.length === 0 && Object.keys(state.items).length === 0) {
@@ -497,7 +512,9 @@ function renderItems() {
 
     // Doces
     candyKeys.forEach(family => {
-        html += `<p>🍬 ${family} doces: ${state.candies[family]}</p>`;
+        // Exibe o nome da família com a primeira letra maiúscula para melhor leitura
+        const displayName = family.charAt(0).toUpperCase() + family.slice(1);
+        html += `<p>🍬 ${displayName} doces: ${state.candies[family]}</p>`;
     });
 
     html += "</div>";
@@ -513,9 +530,10 @@ function showDetails(idx) {
     const dImg = document.getElementById("dImg");
     const dInfo = document.getElementById("dInfo");
 
-    // LÓGICA DE DOCES CORRIGIDA
+    // LÓGICA DE DOCES: Usa a chave em minúsculas
     const family = getCandyFamily(p);
     const candyCount = state.candies[family] || 0;
+    const displayName = family.charAt(0).toUpperCase() + family.slice(1); // Para exibição
     
     const currentLevel = p.baseLevel || p.level || 1;
     const isMaxLevel = currentLevel >= 100;
@@ -531,7 +549,7 @@ function showDetails(idx) {
       <p>Raridade: ${p.rarity}</p>
       <p>Stats: Atk ${p.stats?.atk || 'N/A'}, Def ${p.stats?.def || 'N/A'}, Sta ${p.stats?.sta || 'N/A'}</p>
       ${ivText ? `<p>${ivText}</p>` : ''}
-      <p>Doces de ${family}: ${candyCount}</p>
+      <p>Doces de ${displayName}: ${candyCount}</p>
       <div style="margin:10px 0; display: flex; flex-direction: column; gap: 5px;">
         <button onclick="trainPokemon(${idx})" ${isMaxLevel ? 'disabled' : ''}>
           Treinar (+1 Level, 5 doces) ${isMaxLevel ? '(MAX)' : ''}
@@ -559,26 +577,17 @@ function transferPokemon(idx) {
     const p = state.collection[idx];
     if (!p) return;
 
-    // Confirmação para evitar transferências acidentais
     if (!confirm(`Tem certeza que deseja transferir ${p.name} (CP ${p.cp})? Você receberá 1 doce.`)) {
         return;
     }
     
-    // 1. Determina a família de doces 
     const family = getCandyFamily(p); 
-
-    // 2. Adiciona o doce
     state.candies[family] = (state.candies[family] || 0) + 1;
-
-    // 3. Remove o Pokémon da coleção (usa o índice)
     state.collection.splice(idx, 1);
 
-    // 4. Salva o estado e atualiza a interface
     save();
     renderCollection();
     renderItems();
-    
-    // 5. Fecha o pop-up
     closeDetails();
 
     alert(`✅ ${p.name} transferido com sucesso. Você recebeu 1 doce de ${family}!`);
@@ -591,13 +600,12 @@ function activateMega(idx) {
     const p = state.collection[idx];
     if (!p) return;
     
-    // 1. CHECAGEM DE NÍVEL
     if ((p.baseLevel || p.level) < 100) {
         alert("Apenas Pokémon nível 100 podem Mega Evoluir!");
         return;
     }
     
-    // 2. CHECAGEM CRÍTICA: Apenas Formas Finais podem Mega Evoluir.
+    // CHECAGEM CRÍTICA: Apenas Formas Finais podem Mega Evoluir.
     if (p.evolution && p.evolution.to) {
         alert(`${p.name} ainda pode evoluir para ${p.evolution.to} e não pode Mega Evoluir!`);
         return;
@@ -618,8 +626,8 @@ function activateMega(idx) {
             img: p.img,
             stats: {...p.stats},
             level: p.level,
-            cp: p.cp, // Salva o CP original
-            baseLevel: p.baseLevel || p.level // Garante que o nível base é mantido
+            cp: p.cp, 
+            baseLevel: p.baseLevel || p.level 
         };
     }
     
@@ -640,15 +648,11 @@ function activateGmax(idx) {
     const p = state.collection[idx];
     if (!p) return;
     
-    // 1. CHECAGEM DE NÍVEL
     if ((p.baseLevel || p.level) < 100) {
         alert("Apenas Pokémon nível 100 podem usar Gigantamax!");
         return;
     }
 
-    // 2. CHECAGEM CRÍTICA: Apenas Formas Finais (ou as que tem a forma GMax) podem usar Gigantamax.
-    // É uma regra similar à Mega, mas alguns Pokémons de estágio intermediário podem ter G-Max. 
-    // Mantemos a regra se não houver um GmaxForm específico na Pokédex.
     const gmaxForm = state.pokedex.find(pk => 
         pk.base === p.base && pk.form === 'gmax'
     );
@@ -664,7 +668,7 @@ function activateGmax(idx) {
             img: p.img,
             stats: {...p.stats},
             level: p.level,
-            cp: p.cp, // Salva o CP original
+            cp: p.cp, 
             baseLevel: p.baseLevel || p.level
         };
     }
@@ -688,21 +692,18 @@ function activateDynamax(idx) {
         return;
     }
     
-    // Dynamax é universal, não precisa checar a forma final.
-    
     if (!p.originalData) {
         p.originalData = {
             stats: {...p.stats},
             level: p.level,
-            sta: p.stats.sta, // Salva o Sta original para desativar
-            cp: p.cp, // Salva o CP original
+            sta: p.stats.sta, 
+            cp: p.cp, 
             baseLevel: p.baseLevel || p.level
         };
     }
     
     p.tempForm = 'dynamax';
     p.level = 102;
-    // Usa o sta original para calcular o novo (evita multiplicação infinita)
     p.stats.sta = (p.originalData.sta || p.stats.sta) * 2; 
     p.cp = calcCP(p);
     
@@ -719,7 +720,6 @@ function deactivateSpecialForm(idx) {
         if (p.originalData.name) p.name = p.originalData.name;
         if (p.originalData.img) p.img = p.originalData.img;
         p.stats = {...p.originalData.stats};
-        // Restaura o nível base original (de antes da forma especial)
         p.level = p.originalData.baseLevel; 
         p.baseLevel = p.originalData.baseLevel;
     }
@@ -740,7 +740,6 @@ function trainPokemon(idx) {
     const p = state.collection[idx];
     if (!p) return;
     
-    // LÓGICA DE DOCES CORRIGIDA
     const family = getCandyFamily(p);
     
     if ((state.candies[family] || 0) < 5) {
@@ -770,7 +769,6 @@ function startEvolution(idx) {
         return;
     }
     
-    // LÓGICA DE DOCES CORRIGIDA
     const family = getCandyFamily(p);
     
     const cost = p.evolution.cost || 50;
@@ -792,7 +790,6 @@ function startEvolution(idx) {
     p.rarity = nextEvolution.rarity;
     p.stats = nextEvolution.stats;
     p.evolution = nextEvolution.evolution;
-    // O level, baseLevel e IVs são mantidos. O CP é recalculado:
     p.cp = calcCP(p); 
     
     save();

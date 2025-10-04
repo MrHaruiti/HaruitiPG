@@ -131,8 +131,16 @@ function renderPokedex(region) {
 function showAllForms(dex) {
   const modal = document.getElementById('detailModal');
   if (!modal) return;
-  const forms = state.pokedex.filter(p => p.dex === dex);
+  let forms = state.pokedex.filter(p => p.dex === dex);
   if (!forms.length) return;
+
+  // Remove duplicatas por nome (mantém só a primeira ocorrência)
+  const seen = new Set();
+  forms = forms.filter(f => {
+    if (seen.has(f.name)) return false;
+    seen.add(f.name);
+    return true;
+  });
 
   const dName = document.getElementById("dName");
   const dImg = document.getElementById("dImg");
@@ -144,13 +152,12 @@ function showAllForms(dex) {
   dImg.src = mainForm.img || "";
   dInfo.innerHTML = "";
 
-  // Adiciona todas as formas (normal + shiny)
+  // Adiciona cada forma UMA vez (normal e shiny lado a lado)
   forms.forEach(f => {
     const row = document.createElement("div");
     row.style.display = "flex";
     row.style.alignItems = "center";
     row.style.marginBottom = "10px";
-    row.style.cursor = "pointer";
     
     // Versão Normal
     const normalImg = document.createElement("img");
@@ -159,27 +166,26 @@ function showAllForms(dex) {
     normalImg.height = 48;
     normalImg.style.marginRight = "10px";
     normalImg.style.cursor = "pointer";
+    normalImg.style.border = "2px solid #444";
+    normalImg.style.borderRadius = "8px";
     normalImg.onclick = () => setMainForm(f, false);
     
-    // Versão Shiny (se existir)
-    let shinyImg = null;
-    if (f.imgShiny) {
-      shinyImg = document.createElement("img");
-      shinyImg.src = f.imgShiny;
-      shinyImg.width = 48;
-      shinyImg.height = 48;
-      shinyImg.style.marginRight = "10px";
-      shinyImg.style.cursor = "pointer";
-      shinyImg.style.border = "2px solid #FFD700";
-      shinyImg.style.borderRadius = "8px";
-      shinyImg.onclick = () => setMainForm(f, true);
-    }
+    // Versão Shiny (sempre aparece, mesmo que não tenha imgShiny ainda)
+    const shinyImg = document.createElement("img");
+    shinyImg.src = f.imgShiny || f.img; // Usa imgShiny se existir, senão usa normal
+    shinyImg.width = 48;
+    shinyImg.height = 48;
+    shinyImg.style.marginRight = "10px";
+    shinyImg.style.cursor = "pointer";
+    shinyImg.style.border = "2px solid #FFD700";
+    shinyImg.style.borderRadius = "8px";
+    shinyImg.onclick = () => setMainForm(f, true);
     
     const label = document.createElement("span");
     label.innerHTML = `<b>${f.name}</b> - ${f.rarity || 'N/A'}`;
     
     row.appendChild(normalImg);
-    if (shinyImg) row.appendChild(shinyImg);
+    row.appendChild(shinyImg);
     row.appendChild(label);
     dInfo.appendChild(row);
   });

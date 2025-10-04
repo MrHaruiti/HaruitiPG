@@ -8,7 +8,8 @@
     "img": "https://img.pokemondb.net/sprites/go/normal/charmander.png",
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charmander.png",
     "base": "Charmander",
-    "stats": { "atk": 116, "def": 93, "sta": 118 }
+    "stats": { "atk": 116, "def": 93, "sta": 118 },
+    "evolution": { "to": "Charmeleon", "cost": 25 }
   },
   {
     "dex": 4,
@@ -20,6 +21,7 @@
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charmander-cubone.png",
     "base": "Charmander",
     "stats": { "atk": 116, "def": 93, "sta": 118 }
+    /* Sem evolução para manter a lógica de trajes */
   },
   {
     "dex": 4,
@@ -31,6 +33,7 @@
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charmander-pikachu-cap.png",
     "base": "Charmander",
     "stats": { "atk": 116, "def": 93, "sta": 118 }
+    /* Sem evolução para manter a lógica de trajes */
   },
   {
     "dex": 4,
@@ -41,7 +44,8 @@
     "img": "https://img.pokemondb.net/sprites/go/normal/charmander-red-party-hat.png",
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charmander-red-party-hat.png",
     "base": "Charmander",
-    "stats": { "atk": 116, "def": 93, "sta": 118 }
+    "stats": { "atk": 116, "def": 93, "sta": 118 },
+    "evolution": { "to": "Charmeleon Red Party Hat", "cost": 25 }
   },
   {
     "dex": 5,
@@ -52,7 +56,8 @@
     "img": "https://img.pokemondb.net/sprites/go/normal/charmeleon.png",
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charmeleon.png",
     "base": "Charmander",
-    "stats": { "atk": 158, "def": 126, "sta": 151 }
+    "stats": { "atk": 158, "def": 126, "sta": 151 },
+    "evolution": { "to": "Charizard", "cost": 100 }
   },
   {
     "dex": 5,
@@ -63,7 +68,8 @@
     "img": "https://img.pokemondb.net/sprites/go/normal/charmeleon-red-party-hat.png",
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charmeleon-red-party-hat.png",
     "base": "Charmander",
-    "stats": { "atk": 158, "def": 126, "sta": 151 }
+    "stats": { "atk": 158, "def": 126, "sta": 151 },
+    "evolution": { "to": "Charizard Red Party Hat", "cost": 100 }
   },
   {
     "dex": 6,
@@ -75,6 +81,7 @@
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charizard.png",
     "base": "Charmander",
     "stats": { "atk": 223, "def": 173, "sta": 186 }
+    /* Forma final, sem a chave evolution */
   },
   {
     "dex": 6,
@@ -94,7 +101,7 @@
     "baseCatch": 5,
     "img": "https://img.pokemondb.net/sprites/go/normal/charizard-mega-x.png",
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charizard-mega-x.png",
-    "base": "Charizard",
+    "base": "Charmander", /* CORRIGIDO: Agora usa a base da família de doces */
     "stats": { "atk": 273, "def": 213, "sta": 186 }
   },
   {
@@ -105,7 +112,7 @@
     "baseCatch": 5,
     "img": "https://img.pokemondb.net/sprites/go/normal/charizard-mega-y.png",
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charizard-mega-y.png",
-    "base": "Charizard",
+    "base": "Charmander", /* CORRIGIDO: Agora usa a base da família de doces */
     "stats": { "atk": 319, "def": 212, "sta": 186 }
   },
   {
@@ -127,7 +134,7 @@
     "baseCatch": 5,
     "img": "https://img.pokemondb.net/sprites/go/normal/charizard-gigantamax.png",
     "imgShiny": "https://img.pokemondb.net/sprites/go/shiny/charizard-gigantamax.png",
-    "base": "Charizard",
+    "base": "Charmander", /* CORRIGIDO: Agora usa a base da família de doces */
     "stats": { "atk": 250, "def": 200, "sta": 200 }
   }
 ]

@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-9 - COMPLETO C/ NORMALIZAÇÃO DE DOCES
-console.log(">>> GAMEJS LOADED: v2025-10-04-9 - COMPLETO C/ NORMALIZAÇÃO DE DOCES");
+// >>> GAMEJS LOADED: v2025-10-04-10 - COMPLETO C/ LÓGICA DE EXIBIÇÃO CORRIGIDA
+console.log(">>> GAMEJS LOADED: v2025-10-04-10 - COMPLETO C/ LÓGICA DE EXIBIÇÃO CORRIGIDA");
 
 // =========================
 // ESTADO GLOBAL
@@ -45,7 +45,7 @@ console.log("✅ Tabela CPM carregada:", Object.keys(state.cpmTable).length, "n�
 // Função para determinar a chave de doce (Família Base do Pokémon)
 function getCandyFamily(p) {
     const baseName = p.base || p.name;
-    // Pega o campo 'base' ou 'name', converte para minúsculas e pega apenas a primeira palavra 
+    // Força para minúsculas e pega apenas a primeira palavra 
     return baseName.toLowerCase().split(' ')[0]; 
 }
 
@@ -130,13 +130,13 @@ function load() {
         state.collection = state.collection || [];
         state.pokedex = state.pokedex || [];
         
-        // NOVO: Normaliza as chaves de doces para minúsculas
+        // CORREÇÃO: Normaliza as chaves de doces para minúsculas
         normalizeCandies();
     }
 }
 
 // =========================
-// NAVEGAÇÃO
+// NAVEGAÇÃO / POKEDEX
 // =========================
 function showTab(t) {
     document.querySelectorAll(".tab").forEach(el => el.style.display = "none");
@@ -153,9 +153,6 @@ function showSubTab(id) {
     if (id.startsWith("db-")) loadRegion(id.replace("db-", ""));
 }
 
-// =========================
-// DATABASE / POKEDEX
-// =========================
 async function loadRegion(region) {
     state.pokedex = [];
     try {
@@ -177,7 +174,6 @@ async function loadRegion(region) {
         }
     } catch {
         if (region === "kanto") {
-            // Este é o fallback que precisa dos stats corretos do Bulbasaur
             state.pokedex = [
                 { dex: 1, name: "Bulbasaur", form: "normal", rarity: "Comum", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png", baseCatch: 45, base: "Bulbasaur", stats: {atk: 118, def: 111, sta: 128}, evolution: {to: "Ivysaur", cost: 25} }
             ];
@@ -215,7 +211,7 @@ function renderPokedex(region) {
 }
 
 // =========================
-// MODAL
+// MODAL DE DETALHES DA POKEDEX
 // =========================
 function showAllForms(dex) {
     const modal = document.getElementById('detailModal');
@@ -307,7 +303,7 @@ function closeDetails() {
 }
 
 // =========================
-// EXPLORAÇÃO
+// EXPLORAÇÃO E CÁLCULO DE CP
 // =========================
 function explore() {
     if (state.pokedex.length === 0) {
@@ -327,15 +323,14 @@ function explore() {
     
     const p = wildPokemon[Math.floor(Math.random() * wildPokemon.length)];
     
-    // Inicializa Level e IVs para cálculo correto
-    const encounterLevel = getRandomLevel(1, 50); // Nível aleatório de 1 a 50
+    const encounterLevel = getRandomLevel(1, 50); 
     const encounterIVs = { atk: getRandomIV(), def: getRandomIV(), sta: getRandomIV() };
 
     currentEncounter = { 
         ...p, 
-        level: encounterLevel, // Novo nível
-        baseLevel: encounterLevel, // Guarda o nível base
-        iv: encounterIVs,      // Novos IVs
+        level: encounterLevel, 
+        baseLevel: encounterLevel, 
+        iv: encounterIVs,      
         shiny: Math.random() < shinyChance 
     };
     
@@ -380,22 +375,19 @@ function calcCP(poke) {
         else if (poke.tempForm === 'dynamax') level = 102;
     }
     
-    level = Math.max(1, level); // Garante nível mínimo 1
+    level = Math.max(1, level); 
     
     let CPM;
     const levelKey = Math.floor(level).toString();
 
     if (level <= 100) { 
-        // Busca direta na tabela para níveis 1 a 100 (chaves inteiras)
         CPM = state.cpmTable[levelKey];
     } else { 
-        // Extrapolação para níveis especiais > 100 (usando o CPM de 100 como base)
         const cpm100 = state.cpmTable["100"] || 1.404530; 
-        const increment = 0.0087; // Valor de incremento aproximado entre 50 e 100
+        const increment = 0.0087; 
         CPM = cpm100 + ((level - 100) * increment);
     }
 
-    // Fallback de segurança caso CPM ainda esteja indefinido ou seja 0
     if (CPM === undefined || isNaN(CPM) || CPM === 0) {
         console.error(`CPM indefinido (ou zero) para o nível ${level}. Usando valor de Nível 1.`);
         CPM = state.cpmTable["1"] || 0.094;
@@ -424,9 +416,9 @@ function tryCatch() {
         const caught = { ...currentEncounter, caughtAt: Date.now() };
         state.collection.push(caught);
         
-        // LÓGICA DE DOCES: Usa o nome base do Pokémon, já em minúsculas (via getCandyFamily)
         const family = getCandyFamily(caught);
         
+        // Lógica de doces (simplificada, mas funcional)
         let candyAmount = 5;
         const canEvolve = caught.evolution && caught.evolution.to;
         const isEvolution = state.pokedex.some(p => 
@@ -464,7 +456,7 @@ function tryCatch() {
 }
 
 // =========================
-// BAG / COLEÇÃO
+// BAG / COLEÇÃO E DETALHES
 // =========================
 function renderCollection() {
     const box = document.getElementById("collection");
@@ -495,7 +487,6 @@ function renderCollection() {
 function renderItems() {
     const box = document.getElementById("items");
     if (!box) return;
-    // As chaves agora estão unificadas para minúsculas graças à load() e normalizeCandies()
     const candyKeys = Object.keys(state.candies).filter(k => state.candies[k] > 0);
 
     if (candyKeys.length === 0 && Object.keys(state.items).length === 0) {
@@ -512,7 +503,6 @@ function renderItems() {
 
     // Doces
     candyKeys.forEach(family => {
-        // Exibe o nome da família com a primeira letra maiúscula para melhor leitura
         const displayName = family.charAt(0).toUpperCase() + family.slice(1);
         html += `<p>🍬 ${displayName} doces: ${state.candies[family]}</p>`;
     });
@@ -530,19 +520,20 @@ function showDetails(idx) {
     const dImg = document.getElementById("dImg");
     const dInfo = document.getElementById("dInfo");
 
-    // LÓGICA DE DOCES: Usa a chave em minúsculas
     const family = getCandyFamily(p);
     const candyCount = state.candies[family] || 0;
-    const displayName = family.charAt(0).toUpperCase() + family.slice(1); // Para exibição
+    const displayName = family.charAt(0).toUpperCase() + family.slice(1); 
     
     const currentLevel = p.baseLevel || p.level || 1;
     const isMaxLevel = currentLevel >= 100;
+    
+    // NOVO TESTE: Se tem 'evolution.to', NÃO é a forma final.
+    const isFinalForm = !(p.evolution && p.evolution.to);
 
     dName.innerText = `${p.name} Lv.${currentLevel} (CP ${p.cp}) ${p.shiny ? '⭐' : ''}`;
     dImg.src = p.img;
     dImg.alt = p.name;
     
-    // Mostra IVs de forma clara
     const ivText = p.iv ? `IVs: ${p.iv.atk}/${p.iv.def}/${p.iv.sta}` : '';
     
     dInfo.innerHTML = `
@@ -557,7 +548,8 @@ function showDetails(idx) {
         <button onclick="startEvolution(${idx})">Evoluir (se possível)</button>
         <button onclick="transferPokemon(${idx})" style="background:#f44336; color:white;">Transferir</button>
       </div>
-      ${isMaxLevel ? `
+      
+      ${isMaxLevel && isFinalForm ? ` 
         <div style="margin-top:15px; padding:10px; background:#2c2c2c; border-radius:8px;">
           <h4 style="color:#FFD700; margin:5px 0;">Formas Especiais (Level 100)</h4>
           <button onclick="activateMega(${idx})" style="background:#9c27b0;">Mega Evolution</button>
@@ -571,7 +563,7 @@ function showDetails(idx) {
 }
 
 // =========================
-// TRANSFERÊNCIA
+// AÇÕES NA COLEÇÃO
 // =========================
 function transferPokemon(idx) {
     const p = state.collection[idx];
@@ -593,8 +585,69 @@ function transferPokemon(idx) {
     alert(`✅ ${p.name} transferido com sucesso. Você recebeu 1 doce de ${family}!`);
 }
 
+function trainPokemon(idx) {
+    const p = state.collection[idx];
+    if (!p) return;
+    
+    const family = getCandyFamily(p);
+    
+    if ((state.candies[family] || 0) < 5) {
+        alert(`Você precisa de pelo menos 5 doces de ${family} para treinar!`);
+        return;
+    }
+    
+    const currentLevel = p.baseLevel || p.level || 1;
+    if (currentLevel >= 100) {
+        alert("Este Pokémon já atingiu o level máximo (100)!");
+        return;
+    }
+    
+    state.candies[family] -= 5;
+    p.baseLevel = currentLevel + 1;
+    p.level = p.baseLevel;
+    p.cp = calcCP(p);
+    save();
+    renderCollection();
+    showDetails(idx);
+}
+
+function startEvolution(idx) {
+    const p = state.collection[idx];
+    if (!p || !p.evolution) {
+        alert(`${p?.name || 'Este Pokémon'} não pode evoluir.`);
+        return;
+    }
+    
+    const family = getCandyFamily(p);
+    
+    const cost = p.evolution.cost || 50;
+    if ((state.candies[family] || 0) < cost) {
+        alert(`Você precisa de ${cost} doces de ${family} para evoluir ${p.name}!`);
+        return;
+    }
+    const nextEvolution = state.pokedex.find(
+        poke => poke.name === p.evolution.to && (poke.form === "normal" || !poke.form)
+    );
+    if (!nextEvolution) return;
+    
+    state.candies[family] -= cost;
+    
+    // Transfere dados mantendo IVs e Level
+    p.name = nextEvolution.name;
+    p.dex = nextEvolution.dex;
+    p.img = nextEvolution.img;
+    p.rarity = nextEvolution.rarity;
+    p.stats = nextEvolution.stats;
+    p.evolution = nextEvolution.evolution;
+    p.cp = calcCP(p); 
+    
+    save();
+    renderCollection();
+    showDetails(idx);
+}
+
 // =========================
-// FORMAS ESPECIAIS
+// FORMAS ESPECIAIS (MEGA/GMAX/DMAX)
 // =========================
 function activateMega(idx) {
     const p = state.collection[idx];
@@ -652,6 +705,13 @@ function activateGmax(idx) {
         alert("Apenas Pokémon nível 100 podem usar Gigantamax!");
         return;
     }
+    
+    // CHECAGEM CRÍTICA: Apenas Formas Finais (ou as que têm a forma GMax) podem usar Gigantamax.
+    if (p.evolution && p.evolution.to) {
+        alert(`${p.name} ainda pode evoluir e não pode usar Gigantamax!`);
+        return;
+    }
+
 
     const gmaxForm = state.pokedex.find(pk => 
         pk.base === p.base && pk.form === 'gmax'
@@ -692,6 +752,8 @@ function activateDynamax(idx) {
         return;
     }
     
+    // Dynamax é universal, não precisa checar a forma final.
+    
     if (!p.originalData) {
         p.originalData = {
             stats: {...p.stats},
@@ -727,70 +789,6 @@ function deactivateSpecialForm(idx) {
     p.tempForm = null;
     delete p.originalData;
     p.cp = calcCP(p);
-    
-    save();
-    renderCollection();
-    showDetails(idx);
-}
-
-// =========================
-// TREINO / EVOLUÇÃO
-// =========================
-function trainPokemon(idx) {
-    const p = state.collection[idx];
-    if (!p) return;
-    
-    const family = getCandyFamily(p);
-    
-    if ((state.candies[family] || 0) < 5) {
-        alert(`Você precisa de pelo menos 5 doces de ${family} para treinar!`);
-        return;
-    }
-    
-    const currentLevel = p.baseLevel || p.level || 1;
-    if (currentLevel >= 100) {
-        alert("Este Pokémon já atingiu o level máximo (100)!");
-        return;
-    }
-    
-    state.candies[family] -= 5;
-    p.baseLevel = currentLevel + 1;
-    p.level = p.baseLevel;
-    p.cp = calcCP(p);
-    save();
-    renderCollection();
-    showDetails(idx);
-}
-
-function startEvolution(idx) {
-    const p = state.collection[idx];
-    if (!p || !p.evolution) {
-        alert(`${p?.name || 'Este Pokémon'} não pode evoluir.`);
-        return;
-    }
-    
-    const family = getCandyFamily(p);
-    
-    const cost = p.evolution.cost || 50;
-    if ((state.candies[family] || 0) < cost) {
-        alert(`Você precisa de ${cost} doces de ${family} para evoluir ${p.name}!`);
-        return;
-    }
-    const nextEvolution = state.pokedex.find(
-        poke => poke.name === p.evolution.to && (poke.form === "normal" || !poke.form)
-    );
-    if (!nextEvolution) return;
-    
-    state.candies[family] -= cost;
-    
-    // Transfere dados mantendo IVs e Level
-    p.name = nextEvolution.name;
-    p.dex = nextEvolution.dex;
-    p.img = nextEvolution.img;
-    p.rarity = nextEvolution.rarity;
-    p.stats = nextEvolution.stats;
-    p.evolution = nextEvolution.evolution;
-    p.cp = calcCP(p); 
     
     save();
     renderCollection();

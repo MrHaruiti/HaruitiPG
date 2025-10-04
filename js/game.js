@@ -27,6 +27,9 @@ document.addEventListener("DOMContentLoaded", async () => {// Aguarda CPM carreg
 });
 
 // =========================
+// CARREGAR TABELA CPM
+// =========================
+// =========================
 // CPM EMBUTIDA NO CÓDIGO
 // =========================
 state.cpmTable = {};

@@ -122,16 +122,18 @@ async function loadRegion(region){
     state.pokedex = [];
     const box = document.querySelector(`#db-${region} .list`);
     if (box) box.innerHTML = "<div>Erro ao carregar Pokédex. Verifique console para detalhes. Crie data/" + region + "/index.json.</div>";
-    // Mock temporário para teste (descomente se quiser itens clicáveis sem JSONs reais)
-    // if (region === "kanto") {
-    //   state.pokedex = [
-    //     { dex: 1, name: "Bulbasaur", form: "normal", rarity: "Comum", img: "https://via.placeholder.com/72?text=B", baseCatch: 45, family: "bulbasaur" },
-    //     { dex: 4, name: "Charmander", form: "normal", rarity: "Comum", img: "https://via.placeholder.com/72?text=C", baseCatch: 45, family: "charmander" },
-    //     { dex: 25, name: "Pikachu", form: "normal", rarity: "Raro", img: "https://via.placeholder.com/72?text=P", baseCatch: 20, family: "pikachu" }
-    //   ];
-    //   console.log("[DEBUG] Mock carregado para teste");
-    //   renderPokedex(region);
-    // }
+    // Mock temporário para teste (descomente para itens clicáveis sem JSON real)
+    /*
+    if (region === "kanto") {
+      state.pokedex = [
+        { dex: 1, name: "Bulbasaur", form: "normal", rarity: "Comum", img: "https://via.placeholder.com/72?text=B", baseCatch: 45, family: "bulbasaur", stats: { atk: 118, def: 111, sta: 128 } },
+        { dex: 4, name: "Charmander", form: "normal", rarity: "Comum", img: "https://via.placeholder.com/72?text=C", baseCatch: 45, family: "charmander", stats: { atk: 116, def: 93, sta: 118 } },
+        { dex: 25, name: "Pikachu", form: "normal", rarity: "Raro", img: "https://via.placeholder.com/72?text=P", baseCatch: 20, family: "pikachu", stats: { atk: 112, def: 96, sta: 120 } }
+      ];
+      console.log("[DEBUG] Mock ativado para teste - remova após adicionar JSONs reais");
+      renderPokedex(region);
+    }
+    */
   }
 }
 
@@ -235,4 +237,88 @@ function showAllForms(dex){
     infoCol.style.textAlign = "left";
     infoCol.innerHTML = `<b>${f.name || "?"}</b><div style="font-size:12px; color:#ccc">${f.rarity || ""}</div>`;
     left.appendChild(infoCol);
-    row.appendChild
+    row.appendChild(left);
+
+    const btn = document.createElement("button");
+    btn.textContent = "Ver";
+    btn.style.cursor = "pointer";
+    btn.addEventListener("click", () => setMainForm(f));
+    row.appendChild(btn);
+
+    dInfo.appendChild(row);
+  });
+
+  const modal = document.getElementById("detailModal");
+  if (modal) modal.style.display = "flex";
+}
+
+function setMainForm(form){
+  if (!document.getElementById('detailModal')) {
+    console.warn('Modal de detalhes não encontrado no DOM');
+    return;
+  }
+  if (!form) return;
+  const dImg  = document.getElementById("dImg");
+  const dName = document.getElementById("dName");
+  const dInfo = document.getElementById("dInfo");
+  if (!dImg || !dName || !dInfo) return;
+
+  dImg.src = (form.shiny && form.imgShiny) ? form.imgShiny : (form.img || "");
+  dImg.alt = form.name || dName.innerText || "Pokémon";
+  dName.innerText = (form.name || "Forma") + (form.shiny ? " ⭐" : "");
+
+  const prev = dInfo.querySelector(".form-extra");
+  if (prev) prev.remove();
+  const holder = document.createElement("div");
+  holder.className = "form-extra";
+  holder.style.marginBottom = "8px";
+
+  let extra = "";
+  if (form.dex) extra += `<div><b>#${form.dex}</b></div>`;
+  if (form.rarity) extra += `<div>Raridade: ${form.rarity}</div>`;
+  if (form.base) extra += `<div>Base: ${form.base}</div>`;
+  if (form.stats) extra += `<div>Stats — Atk:${form.stats.atk||'N/A'} Def:${form.stats.def||'N/A'} Sta:${form.stats.sta||'N/A'}</div>`;
+
+  holder.innerHTML = extra;
+  dInfo.insertBefore(holder, dInfo.firstChild);
+}
+
+function closeDetails(){
+  const modal = document.getElementById("detailModal");
+  if (modal) modal.style.display = "none";
+}
+
+// =========================
+// EXPLORAÇÃO
+// =========================
+function explore(){
+  if (state.pokedex.length === 0){
+    document.getElementById("exploreResult").innerHTML = "Nenhum Pokémon nesta região.";
+    return;
+  }
+  const p = state.pokedex[Math.floor(Math.random() * state.pokedex.length)];
+  currentEncounter = { ...p };
+  currentEncounter.shiny = Math.random() < shinyChance;
+  currentEncounter.cp = calcCP(currentEncounter);
+
+  const result = document.getElementById("exploreResult");
+  result.innerHTML = `
+    <div style="text-align:center; margin:20px 0;">
+      <img src="${currentEncounter.shiny ? currentEncounter.imgShiny || currentEncounter.img : currentEncounter.img}" alt="${currentEncounter.name}" style="width:120px; height:120px; border-radius:50%; border:3px solid ${currentEncounter.shiny ? '#FFD700' : '#4CAF50'};"/>
+      <h3>${currentEncounter.name} ${currentEncounter.shiny ? '⭐' : ''} (CP ${currentEncounter.cp})</h3>
+      <p>Raridade: ${currentEncounter.rarity || 'Desconhecida'}</p>
+      <button onclick="tryCatch()" style="background:#ff5722; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Capturar</button>
+    </div>
+  `;
+}
+
+function calcCP(poke){
+  // Fórmula simplificada - expanda com IVs reais depois
+  const base = (poke.stats?.atk || 100) + (poke.stats?.def || 100) + (poke.stats?.sta || 100);
+  return Math.floor(base * (poke.level || 1) / 10);
+}
+
+function tryCatch(){
+  if (!currentEncounter) return;
+  const baseRate = currentEncounter.baseCatch || 30;
+  const catchRate = current

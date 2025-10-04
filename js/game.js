@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-5 - SYNTAX FIXED
-console.log(">>> GAMEJS LOADED: v2025-10-04-5 - SYNTAX FIXED");
+// >>> GAMEJS LOADED: v2025-10-04-6 - CLEAN VERSION
+console.log(">>> GAMEJS LOADED: v2025-10-04-6 - CLEAN");
 
 // =========================
 // ESTADO GLOBAL
@@ -35,15 +35,7 @@ let state = {
 let currentEncounter = null;
 const shinyChance = 0.001;
 
-console.log("✅ Tabela CPM embutida carregada:", Object.keys(state.cpmTable).length, "níveis");
-
-// =========================
-// TABELA CPM EMBUTIDA
-// =========================
-state.cpmTable = {
-  "0": 0.0, "1": 0.094, "2": 0.135137, "3": 0.166398, "4": 0.192651, "5": 0.215732,
-  "6": 0.236573, "7": 0.25572, "8": 0.27353, "9": 0.29025, "10": 0.306057,
-  "11": 0.321088, "12": 0.335445, "13": 0.349213, "14": 0.362457, "15": 0.375
+console.log("✅ Tabela CPM carregada:", Object.keys(state.cpmTable).length, "níveis");
 
 // =========================
 // BOOT
@@ -69,6 +61,7 @@ function load() {
   if (s) {
     try {
       state = JSON.parse(s);
+      state.cpmTable = state.cpmTable || {};
     } catch {
       state = { pokedex: [], collection: [], candies: {}, items: {} };
     }
@@ -286,7 +279,7 @@ function explore() {
 
 function calcCP(poke) {
   if (!state.cpmTable) {
-    console.warn("Tabela CPM não carregada ainda");
+    console.warn("Tabela CPM não carregada");
     return 10;
   }
 

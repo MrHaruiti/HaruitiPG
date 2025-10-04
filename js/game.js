@@ -29,7 +29,12 @@ function save(){ localStorage.setItem("pk_state", JSON.stringify(state)); }
 function load(){
   const s = localStorage.getItem("pk_state");
   if(s) {
-    state = JSON.parse(s);
+    try {
+      state = JSON.parse(s);
+    } catch(e) {
+      console.error("Erro parseando estado salvo:", e);
+      state = { pokedex: [], collection: [], candies: {}, items: {} };
+    }
     state.items = state.items || {};
     state.candies = state.candies || {};
     state.collection = state.collection || [];
@@ -60,22 +65,64 @@ function showSubTab(id){
 // =========================
 // DATABASE / POKEDEX
 // =========================
+// Carrega index.json de região — suporta:
+// - formato A: ["BulbasaurFamily.json", "CharmanderFamily.json"]
+// - formato B: { "families": [ "BulbasaurFamily.json", ... ] }
 async function loadRegion(region){
   try {
     const res = await fetch(`data/${region}/index.json`);
-    const families = await res.json();
+    if (!res.ok) throw new Error(`index.json HTTP ${res.status}`);
+    const json = await res.json();
+
+    // Normaliza families para um array de strings
+    let families = [];
+    if (Array.isArray(json)) families = json;
+    else if (json && Array.isArray(json.families)) families = json.families;
+    else {
+      console.warn("loadRegion: index.json tem formato inesperado; esperando array ou { families: [] }", json);
+      // tenta inferir arquivos no diretório (não disponível via fetch), então aborta
+      families = [];
+    }
+
     state.pokedex = [];
 
-    for (const fam of families) {
+    // carrega cada family file (ignora erros individuais)
+    for (const fam of families){
       try {
-        const r2 = await fetch(`data/${region}/${fam}.json`);
+        // se o nome já vier com extensão, usa; se não, acrescenta .json
+        const fname = fam.endsWith(".json") ? fam : fam + ".json";
+        const r2 = await fetch(`data/${region}/${encodeURIComponent(fname)}`);
+        if (!r2.ok) {
+          console.warn("loadRegion: não encontrou arquivo da família", fname, "status", r2.status);
+          continue;
+        }
         const d2 = await r2.json();
-        state.pokedex.push(...d2);
-      } catch (err) { console.error("Erro carregando familia", fam, err); }
+        if (Array.isArray(d2)) {
+          state.pokedex.push(...d2);
+        } else if (Array.isArray(d2.pokemon)) {
+          // suporte a outro formato: { pokemon: [...] }
+          state.pokedex.push(...d2.pokemon);
+        } else {
+          // se for um único objeto (uma família onde cada entry é uma forma), tenta extrair
+          if (Array.isArray(Object.values(d2))) {
+            // procurar por array dentro do objeto
+            const arr = Object.values(d2).find(v => Array.isArray(v));
+            if (arr) state.pokedex.push(...arr);
+            else console.warn("loadRegion: formato family.json inesperado para", fname);
+          }
+        }
+      } catch (errFam) {
+        console.error("Erro carregando family file:", fam, errFam);
+      }
     }
+
     renderPokedex(region);
   } catch (err) {
     console.error("Erro carregando região", region, err);
+    // atualiza UI pra mostrar erro
+    const box = document.querySelector(`#db-${region} .list`);
+    if (box) box.innerHTML = "<div>Erro ao carregar Pokédex.</div>";
+    state.pokedex = [];
   }
 }
 
@@ -92,13 +139,14 @@ function renderPokedex(region){
   const shown = new Set();
 
   sorted.forEach(p => {
-    if (p.form === "normal" && !shown.has(p.dex)) {
+    // se p.form não existir considera como normal
+    if ((p.form === "normal" || !p.form) && !shown.has(p.dex)) {
       shown.add(p.dex);
       const div = document.createElement("div");
       div.className = "item clickable";
       div.innerHTML = `
-        <img class="sprite" src="${p.img}" alt="${p.name}"/>
-        <div>${p.name}</div>
+        <img class="sprite" src="${p.img || ''}" alt="${p.name || '??'}"/>
+        <div>${p.name || '???'}</div>
       `;
       div.onclick = () => showAllForms(p.dex);
       box.appendChild(div);
@@ -110,55 +158,116 @@ function renderPokedex(region){
 // MODAL TODAS AS FORMAS
 // =========================
 function showAllForms(dex){
-  const forms = state.pokedex.filter(p => p.dex === dex);
-  if (forms.length === 0) return;
+  try {
+    const forms = state.pokedex.filter(p => p.dex === dex);
+    if (!forms || forms.length === 0) return;
 
-  const baseName = forms[0].base || forms[0].name.split(" ")[0];
-  const dName = document.getElementById("dName");
-  const dImg  = document.getElementById("dImg");
-  const dInfo = document.getElementById("dInfo");
+    const baseName = forms[0].base || (forms[0].name ? forms[0].name.split(" ")[0] : "Pokémon");
+    const dName = document.getElementById("dName");
+    const dImg  = document.getElementById("dImg");
+    const dInfo = document.getElementById("dInfo");
 
-  if (dName) dName.innerText = `${baseName} — Todas as formas`;
-  if (dImg)  dImg.src = forms[0].img;
-
-  dInfo.innerHTML = "";
-  forms.forEach(f => {
-    const row = document.createElement("div");
-    row.style.margin = "6px 0";
-    row.style.borderBottom = "1px solid #333";
-    row.style.padding = "4px";
-
-    const normal = document.createElement("img");
-    normal.src = f.img;
-    normal.width = 48;
-    normal.className = "clickable";
-    normal.onclick = () => setMainForm(f);
-
-    row.appendChild(normal);
-
-    if (f.imgShiny){
-      const shiny = document.createElement("img");
-      shiny.src = f.imgShiny;
-      shiny.width = 48;
-      shiny.className = "clickable";
-      shiny.onclick = () => setMainForm({...f, shiny:true});
-      row.appendChild(shiny);
+    if (!dName || !dImg || !dInfo) {
+      console.error("showAllForms: modal elements missing (dName/dImg/dInfo)");
+      return;
     }
 
-    const label = document.createElement("span");
-    label.innerHTML = `<b>${f.name}</b> — ${f.rarity}`;
-    row.appendChild(label);
+    dName.innerText = `${baseName} — Todas as formas`;
+    dImg.src = forms[0].img || "";
+    dImg.alt = baseName;
 
-    dInfo.appendChild(row);
-  });
+    // limpa informações
+    dInfo.innerHTML = "";
 
-  document.getElementById("detailModal").style.display = "flex";
+    forms.forEach((f, idx) => {
+      const row = document.createElement("div");
+      row.style.margin = "6px 0";
+      row.style.borderBottom = "1px solid #333";
+      row.style.padding = "6px 4px";
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.justifyContent = "space-between";
+      row.style.gap = "12px";
+
+      const left = document.createElement("div");
+      left.style.display = "flex";
+      left.style.alignItems = "center";
+      left.style.gap = "8px";
+
+      const img = document.createElement("img");
+      img.src = f.img || "";
+      img.width = 48;
+      img.alt = f.name || ("Forma " + (idx+1));
+      img.style.cursor = "pointer";
+      img.className = "clickable";
+      img.addEventListener("click", () => setMainForm(f));
+
+      left.appendChild(img);
+
+      if (f.imgShiny) {
+        const imgS = document.createElement("img");
+        imgS.src = f.imgShiny;
+        imgS.width = 48;
+        imgS.alt = (f.name || "") + " shiny";
+        imgS.style.cursor = "pointer";
+        imgS.className = "clickable";
+        imgS.addEventListener("click", () => setMainForm({...f, shiny:true}));
+        left.appendChild(imgS);
+      }
+
+      const infoCol = document.createElement("div");
+      infoCol.style.textAlign = "left";
+      infoCol.innerHTML = `<b>${f.name || "?"}</b><div style="font-size:12px; color:#ccc">${f.rarity || ""}</div>`;
+
+      left.appendChild(infoCol);
+      row.appendChild(left);
+
+      const btn = document.createElement("button");
+      btn.textContent = "Ver";
+      btn.style.cursor = "pointer";
+      btn.addEventListener("click", () => setMainForm(f));
+      row.appendChild(btn);
+
+      dInfo.appendChild(row);
+    });
+
+    const modal = document.getElementById("detailModal");
+    if (modal) modal.style.display = "flex";
+  } catch (err) {
+    console.error("showAllForms erro:", err);
+  }
 }
+
 function setMainForm(form){
-  const dImg  = document.getElementById("dImg");
-  const dName = document.getElementById("dName");
-  if (dImg)  dImg.src = form.shiny && form.imgShiny ? form.imgShiny : form.img;
-  if (dName) dName.innerText = form.name + (form.shiny ? " ⭐" : "");
+  try {
+    if (!form) return;
+    const dImg  = document.getElementById("dImg");
+    const dName = document.getElementById("dName");
+    const dInfo = document.getElementById("dInfo");
+    if (!dImg || !dName || !dInfo) return;
+
+    dImg.src = (form.shiny && form.imgShiny) ? form.imgShiny : (form.img || "");
+    dImg.alt = form.name || dName.innerText || "Pokémon";
+    dName.innerText = (form.name || "Forma") + (form.shiny ? " ⭐" : "");
+
+    // mostra detalhes rápidos (stats)
+    let extra = "";
+    if (form.dex) extra += `<div><b>#${form.dex}</b></div>`;
+    if (form.rarity) extra += `<div>Raridade: ${form.rarity}</div>`;
+    if (form.base) extra += `<div>Base: ${form.base}</div>`;
+    if (form.stats) extra += `<div>Stats — Atk:${form.stats.atk||'N/A'} Def:${form.stats.def||'N/A'} Sta:${form.stats.sta||'N/A'}</div>`;
+
+    // insere antes da lista de formas
+    const prev = dInfo.querySelector(".form-extra");
+    if (prev) prev.remove();
+    const holder = document.createElement("div");
+    holder.className = "form-extra";
+    holder.style.marginBottom = "8px";
+    holder.innerHTML = extra;
+    dInfo.insertBefore(holder, dInfo.firstChild);
+  } catch (err) {
+    console.error("setMainForm erro:", err);
+  }
 }
 
 // =========================
@@ -184,7 +293,7 @@ function explore(){
 
 function tryCatch(){
   if (!currentEncounter) return;
-  const success = currentEncounter.shiny ? true : (Math.random() * 100) < currentEncounter.baseCatch;
+  const success = currentEncounter.shiny ? true : (Math.random() * 100) < (currentEncounter.baseCatch || 5);
   const res = document.getElementById("encResult");
 
   if (success){
@@ -203,7 +312,7 @@ function tryCatch(){
       imgShiny: currentEncounter.imgShiny,
       shiny: currentEncounter.shiny,
       iv,
-      level: currentEncounter.level,
+      level: currentEncounter.level || 1,
       capturedAt: new Date().toLocaleString()
     };
 
@@ -268,9 +377,9 @@ function showDetails(id){
     <hr>
     <div><b>Nível:</b> ${c.level}</div>
     <div><b>IVs:</b> 
-      <span style="color:${c.iv.atk<15?"lime":"red"}">Atk ${c.iv.atk}</span>, 
-      <span style="color:${c.iv.def<15?"lime":"red"}">Def ${c.iv.def}</span>, 
-      <span style="color:${c.iv.sta<15?"lime":"red"}">Sta ${c.iv.sta}</span>
+      <span style="color:${c.iv.atk<15?'lime':'red'}">Atk ${c.iv.atk}</span>, 
+      <span style="color:${c.iv.def<15?'lime':'red'}">Def ${c.iv.def}</span>, 
+      <span style="color:${c.iv.sta<15?'lime':'red'}">Sta ${c.iv.sta}</span>
     </div>
     <div><b>${c.base} Candy:</b> ${candies}</div>
     <div><b>Data de Captura:</b> ${c.capturedAt}</div>
@@ -297,7 +406,7 @@ function transferPokemon(id){
 function trainPokemon(id){
   const p = state.collection.find(x => x.id === id);
   if (!p) return;
-  const cost = Math.floor(p.level * 1.5);
+  const cost = Math.ceil(p.level * 1.5);
   if ((state.candies[p.family] || 0) < cost){
     alert("Não há doces suficientes!");
     return;
@@ -353,10 +462,24 @@ function startEvolution(pokemon){
 }
 
 // =========================
-// CÁLCULO DE CP
+// CÁLCULO DE CP (simples, integrado ao game)
 // =========================
 function calcCP(p){
   if (!p.iv || !p.level) return 10;
+  // cálculo simples: soma de IVs multiplicada pelo nível — já dá resultado coerente no jogo
   const base = (p.iv.atk + p.iv.def + p.iv.sta);
-  return Math.floor(base * (p.level/10));
+  return Math.max(10, Math.floor(base * (p.level/10)));
 }
+
+// =========================
+// Fecha modal ao clicar no backdrop (melhora UX)
+// =========================
+(function enableBackdropClose(){
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("detailModal");
+    if (!modal) return;
+    modal.addEventListener("click", (e) => {
+      if (e.target && e.target.id === "detailModal") closeDetails();
+    });
+  });
+})();

@@ -11,6 +11,19 @@ let state = {
   items: {},
   cpmTable: null
 };
+// =========================
+// CPM EMBUTIDA NO CÓDIGO (níveis 1-100 + 102/105/110)
+// Fórmula linear ajustada: 0.1 + (level/100)*1.9
+state.cpmTable = state.cpmTable || {};
+for (let i = 1; i <= 100; i++) {
+  state.cpmTable[i] = 0.1 + (i / 100) * 1.9;
+}
+state.cpmTable[102] = 0.1 + (102 / 100) * 1.9;
+state.cpmTable[105] = 0.1 + (105 / 100) * 1.9;
+state.cpmTable[110] = 0.1 + (110 / 100) * 1.9;
+// =========================
+
+
 let currentEncounter = null;
 const shinyChance = 0.001;
 
@@ -279,12 +292,37 @@ function explore() {
 }
 
 function calcCP(poke) {
-  // Aguarda tabela CPM estar carregada
-  if (!state.cpmTable) {
-    console.warn("Tabela CPM não carregada ainda");
-    return 10;
+  const baseAtk = poke.stats?.atk || 100;
+  const baseDef = poke.stats?.def || 100;
+  const baseSta = poke.stats?.sta || 100;
+
+  const atkIV = (poke.iv && typeof poke.iv.atk === 'number') ? poke.iv.atk : Math.floor(Math.random() * 16);
+  const defIV = (poke.iv && typeof poke.iv.def === 'number') ? poke.iv.def : Math.floor(Math.random() * 16);
+  const staIV = (poke.iv && typeof poke.iv.sta === 'number') ? poke.iv.sta : Math.floor(Math.random() * 16);
+  if (!poke.iv) poke.iv = { atk: atkIV, def: defIV, sta: staIV };
+
+  let level = poke.level || 1;
+  if (poke.tempForm === 'mega') level = 110;
+  else if (poke.tempForm === 'gmax') level = 105;
+  else if (poke.tempForm === 'dynamax') level = 102;
+  level = Math.max(1, Math.min(110, level));
+
+  let CPM;
+  if (level <= 100) {
+    CPM = state.cpmTable[level];
+  } else {
+    const cpm100 = state.cpmTable[100];
+    const increment = 0.02;
+    CPM = cpm100 + ((level - 100) * increment);
   }
 
+  const totalAtk = baseAtk + atkIV;
+  const totalDef = baseDef + defIV;
+  const totalSta = baseSta + staIV;
+
+  const cp = Math.floor((totalAtk * Math.sqrt(totalDef) * Math.sqrt(totalSta) * Math.pow(CPM, 2)) / 10);
+  return Math.max(10, cp);
+}
   // Stats base
   const baseAtk = poke.stats?.atk || 100;
   const baseDef = poke.stats?.def || 100;

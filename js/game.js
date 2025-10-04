@@ -252,7 +252,20 @@ function explore() {
     document.getElementById("exploreResult").innerHTML = "<p style='color:#f00; text-align:center;'>Carregue a Database primeiro!</p>";
     return;
   }
-  const p = state.pokedex[Math.floor(Math.random() * state.pokedex.length)];
+  
+  // Filtra formas que NÃO podem aparecer na natureza
+  const wildPokemon = state.pokedex.filter(p => {
+    const form = (p.form || 'normal').toLowerCase();
+    // Remove mega, gmax e dynamax da exploração
+    return !form.includes('mega') && form !== 'gmax' && form !== 'gigantamax' && form !== 'dynamax';
+  });
+  
+  if (wildPokemon.length === 0) {
+    document.getElementById("exploreResult").innerHTML = "<p style='color:#f00; text-align:center;'>Nenhum Pokémon disponível para exploração!</p>";
+    return;
+  }
+  
+  const p = wildPokemon[Math.floor(Math.random() * wildPokemon.length)];
   currentEncounter = { ...p, level: 1 };
   currentEncounter.shiny = Math.random() < shinyChance;
   currentEncounter.cp = calcCP(currentEncounter);

@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-10 - COMPLETO C/ LÓGICA DE EXIBIÇÃO CORRIGIDA
-console.log(">>> GAMEJS LOADED: v2025-10-04-10 - COMPLETO C/ LÓGICA DE EXIBIÇÃO CORRIGIDA");
+// >>> GAMEJS LOADED: v2025-10-05-12 - COMPLETO C/ CORREÇÃO DE EVOLUÇÃO DE VARIANTE
+console.log(">>> GAMEJS LOADED: v2025-10-05-12 - COMPLETO C/ CORREÇÃO DE EVOLUÇÃO DE VARIANTE");
 
 // =========================
 // ESTADO GLOBAL
@@ -8,7 +8,7 @@ let state = {
     pokedex: [],
     collection: [],
     candies: {},
-    items: {},
+    items: {}, // Aqui vamos adicionar Pokébolas na próxima etapa
     // TABELA CPM CORRIGIDA PARA NÍVEIS INTEIROS (1 a 100)
     cpmTable: {
         "1": 0.094000, "2": 0.166398, "3": 0.215732, "4": 0.255720, "5": 0.290250,
@@ -174,8 +174,9 @@ async function loadRegion(region) {
         }
     } catch {
         if (region === "kanto") {
+            // Este é apenas um fallback, o JSON completo da família deve estar no arquivo
             state.pokedex = [
-                { dex: 1, name: "Bulbasaur", form: "normal", rarity: "Comum", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png", baseCatch: 45, base: "Bulbasaur", stats: {atk: 118, def: 111, sta: 128}, evolution: {to: "Ivysaur", cost: 25} }
+                { dex: 4, name: "Charmander", form: "normal", rarity: "Comum", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png", baseCatch: 45, base: "Charmander", stats: {atk: 116, def: 93, sta: 118}, evolution: {to: "Charmeleon", cost: 25} }
             ];
         }
     }
@@ -219,6 +220,7 @@ function showAllForms(dex) {
     let forms = state.pokedex.filter(p => p.dex === dex);
     if (!forms.length) return;
 
+    // Filtra para mostrar apenas um exemplo de cada nome de forma
     const seen = new Set();
     forms = forms.filter(f => {
         if (seen.has(f.name)) return false;
@@ -286,10 +288,15 @@ function setMainForm(form, isShiny) {
     infoDiv.style.padding = "10px";
     infoDiv.style.background = "#2c2c2c";
     infoDiv.style.borderRadius = "8px";
+    
+    const evolutionText = form.evolution 
+        ? `(Evolui para: ${form.evolution.to} - ${form.evolution.cost} doces)` 
+        : (form.name.includes('Mega') || form.name.includes('Gigantamax') ? '' : '(Forma Final)');
+
     infoDiv.innerHTML = `
       <p><b>#${form.dex}</b> - Raridade: ${form.rarity || 'N/A'}</p>
       <p>Stats: Atk ${form.stats?.atk || 'N/A'} | Def ${form.stats?.def || 'N/A'} | Sta ${form.stats?.sta || 'N/A'}</p>
-      <p>Base: ${form.base || 'N/A'} ${form.evolution ? `(Evolui para: ${form.evolution.to} - ${form.evolution.cost} doces)` : ''}</p>
+      <p>Base: ${form.base || 'N/A'} ${evolutionText}</p>
     `;
     
     const existingInfo = dInfo.querySelector('div[style*="margin-top: 15px"]');
@@ -311,6 +318,7 @@ function explore() {
         return;
     }
     
+    // Filtra para APENAS formas capturáveis na natureza (não Mega/Gmax/Dmax)
     const wildPokemon = state.pokedex.filter(p => {
         const form = (p.form || 'normal').toLowerCase();
         return !form.includes('mega') && form !== 'gmax' && form !== 'gigantamax' && form !== 'dynamax';
@@ -407,6 +415,9 @@ function calcCP(poke) {
 
 function tryCatch() {
     if (!currentEncounter) return;
+    
+    // FUTURO: Aqui é onde vamos checar e consumir Pokébolas
+
     const baseRate = currentEncounter.baseCatch || 30;
     const catchRate = currentEncounter.shiny ? 100 : baseRate;
     const success = Math.random() * 100 < catchRate;
@@ -421,20 +432,13 @@ function tryCatch() {
         // Lógica de doces (simplificada, mas funcional)
         let candyAmount = 5;
         const canEvolve = caught.evolution && caught.evolution.to;
-        const isEvolution = state.pokedex.some(p => 
-            p.base === caught.base && p.evolution && p.evolution.to === caught.name
-        );
         
+        // Se pode evoluir, ganha mais doces, se não, ganha a base.
         if (canEvolve) {
-            if (isEvolution) {
-                candyAmount = 10;
-            } else {
-                candyAmount = 5;
-            }
-        } else if (isEvolution) {
-            candyAmount = 15;
+            candyAmount = 5; 
         } else {
-            candyAmount = 5;
+            // Se é forma final, ganha mais doces para treino
+            candyAmount = 10;
         }
         
         state.candies[family] = (state.candies[family] || 0) + candyAmount;
@@ -450,7 +454,7 @@ function tryCatch() {
     } else {
         result.innerHTML += `<div style="text-align:center; color:#f44336; margin:20px 0;">
           <p>O Pokémon fugiu! 😞</p>
-          <button onclick="tryCatch()" style="background:#f44336; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer;">Tentar Novamente</button>
+          <button onclick="explore()" style="background:#f44336; color:white; padding:8px 16px; border:none; border-radius:5px; cursor:pointer;">Tentar Novamente</button>
         </div>`;
     }
 }
@@ -497,11 +501,13 @@ function renderItems() {
     let html = "<div style='text-align:left;'>";
     
     // Itens
+    html += "<h4 style='margin-top:0;'>Itens</h4>";
     Object.entries(state.items).forEach(([item, count]) => {
-        html += `<p>• ${item}: ${count}</p>`;
+        html += `<p>📦 ${item}: ${count}</p>`;
     });
 
     // Doces
+    html += "<h4 style='margin-top:15px;'>Doces</h4>";
     candyKeys.forEach(family => {
         const displayName = family.charAt(0).toUpperCase() + family.slice(1);
         html += `<p>🍬 ${displayName} doces: ${state.candies[family]}</p>`;
@@ -527,14 +533,14 @@ function showDetails(idx) {
     const currentLevel = p.baseLevel || p.level || 1;
     const isMaxLevel = currentLevel >= 100;
     
-    // NOVO TESTE: Se tem 'evolution.to', NÃO é a forma final.
+    // TESTE CORRIGIDO PARA FORMA FINAL: Se tem 'evolution.to', NÃO é a forma final.
     const isFinalForm = !(p.evolution && p.evolution.to);
 
     dName.innerText = `${p.name} Lv.${currentLevel} (CP ${p.cp}) ${p.shiny ? '⭐' : ''}`;
     dImg.src = p.img;
     dImg.alt = p.name;
     
-    const ivText = p.iv ? `IVs: ${p.iv.atk}/${p.iv.def}/${p.iv.sta}` : '';
+    const ivText = p.iv ? `IVs: ${p.iv.atk}/${p.iv.def}/${p.iv.sta} (Total: ${p.iv.atk + p.iv.def + p.iv.sta}/45)` : '';
     
     dInfo.innerHTML = `
       <p>Raridade: ${p.rarity}</p>
@@ -625,10 +631,19 @@ function startEvolution(idx) {
         alert(`Você precisa de ${cost} doces de ${family} para evoluir ${p.name}!`);
         return;
     }
+    
+    // CORREÇÃO APLICADA: Busca o próximo Pokémon pelo nome e pela base,
+    // sem restringir a forma, permitindo a evolução de variantes (Party Hat).
     const nextEvolution = state.pokedex.find(
-        poke => poke.name === p.evolution.to && (poke.form === "normal" || !poke.form)
+        poke => 
+            poke.name === p.evolution.to && 
+            poke.base === p.base
     );
-    if (!nextEvolution) return;
+    
+    if (!nextEvolution) {
+        alert(`A forma de evolução "${p.evolution.to}" não foi encontrada no Pokédex!`);
+        return;
+    }
     
     state.candies[family] -= cost;
     
@@ -638,7 +653,7 @@ function startEvolution(idx) {
     p.img = nextEvolution.img;
     p.rarity = nextEvolution.rarity;
     p.stats = nextEvolution.stats;
-    p.evolution = nextEvolution.evolution;
+    p.evolution = nextEvolution.evolution; // Copia a regra de evolução da nova forma (ou undefined se for a forma final)
     p.cp = calcCP(p); 
     
     save();
@@ -658,14 +673,13 @@ function activateMega(idx) {
         return;
     }
     
-    // CHECAGEM CRÍTICA: Apenas Formas Finais podem Mega Evoluir.
     if (p.evolution && p.evolution.to) {
-        alert(`${p.name} ainda pode evoluir para ${p.evolution.to} e não pode Mega Evoluir!`);
+        alert(`${p.name} ainda pode evoluir e não pode Mega Evoluir!`);
         return;
     }
     
     const megaForm = state.pokedex.find(pk => 
-        pk.base === p.base && (pk.form === 'mega' || pk.form === 'mega-x' || pk.form === 'mega-y')
+        pk.base === p.base && (pk.form === 'mega' || pk.form.startsWith('mega-'))
     );
     
     if (!megaForm) {
@@ -706,7 +720,6 @@ function activateGmax(idx) {
         return;
     }
     
-    // CHECAGEM CRÍTICA: Apenas Formas Finais (ou as que têm a forma GMax) podem usar Gigantamax.
     if (p.evolution && p.evolution.to) {
         alert(`${p.name} ainda pode evoluir e não pode usar Gigantamax!`);
         return;
@@ -751,8 +764,6 @@ function activateDynamax(idx) {
         alert("Apenas Pokémon nível 100 podem usar Dynamax!");
         return;
     }
-    
-    // Dynamax é universal, não precisa checar a forma final.
     
     if (!p.originalData) {
         p.originalData = {

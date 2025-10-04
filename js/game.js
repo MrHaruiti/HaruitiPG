@@ -24,6 +24,12 @@ function load(){
   const s = localStorage.getItem("pk_state"); 
   if(s) {
     state = JSON.parse(s);
+
+    // 🧹 Remover Pokémon antigos sem nível
+    if (Array.isArray(state.collection)) {
+      state.collection = state.collection.filter(p => p.level);
+    }
+
     state.items = state.items && typeof state.items === "object" ? state.items : {};
     state.candies = state.candies && typeof state.candies === "object" ? state.candies : {};
     state.collection = Array.isArray(state.collection) ? state.collection : [];
@@ -52,17 +58,26 @@ function showSubTab(id){
 
 // Database / Pokédex
 function loadRegion(region){
-  const file = "data/" + region + "/index.json";
-  fetch(file)
+  const indexFile = `data/${region}/index.json`;
+  fetch(indexFile)
     .then(r => r.json())
-    .then(data => {
-      state.pokedex = data;
+    .then(indexData => {
+      // index.json contém lista de arquivos de famílias
+      let promises = indexData.families.map(file =>
+        fetch(`data/${region}/${file}`).then(r => r.json())
+      );
+      return Promise.all(promises);
+    })
+    .then(families => {
+      // Junta todas as famílias em um único array
+      state.pokedex = families.flat();
       renderPokedex(region);
     })
-    .catch(() => {
+    .catch(err => {
+      console.error("Erro carregando Pokédex:", err);
       state.pokedex = [];
       const box = document.querySelector(`#db-${region} .list`);
-      if (box) box.innerHTML = "<div>Nenhum Pokémon cadastrado.</div>";
+      if (box) box.innerHTML = "<div>Erro ao carregar Pokédex.</div>";
     });
 }
 
@@ -167,7 +182,7 @@ function tryCatch(){
       imgShiny: currentEncounter.imgShiny,
       shiny: currentEncounter.shiny,
       iv,
-      level: Math.floor(Math.random() * 50) + 1, // nível aleatório 1-50
+      level: Math.floor(Math.random() * 50) + 1,
       stats: currentEncounter.stats,
       capturedAt: new Date().toLocaleString()
     };
@@ -241,6 +256,11 @@ function showDetails(id){
   detailBox.innerHTML = `
     <div style="font-weight:bold; font-size:18px; margin-bottom:6px;">CP ${cp}</div>
     <div><b>Nível:</b> ${c.level}</div>
+    <div><b>IVs:</b> 
+      Atk <span style="color:${c.iv.atk === 15 ? 'red' : 'lime'}">${c.iv.atk}</span> /
+      Def <span style="color:${c.iv.def === 15 ? 'red' : 'lime'}">${c.iv.def}</span> /
+      Sta <span style="color:${c.iv.sta === 15 ? 'red' : 'lime'}">${c.iv.sta}</span>
+    </div>
     <img src="${c.shiny && c.imgShiny ? c.imgShiny : c.img}" style="width:96px; margin:10px 0;">
     <div style="font-weight:bold; font-size:16px;">#${c.dex || "???"} ${c.name}</div>
     <hr>
@@ -250,7 +270,7 @@ function showDetails(id){
     <div><b>Data de Captura:</b> ${c.capturedAt}</div>
     <div style="margin-top:10px;">
       <button onclick="levelUpPokemon('${c.id}')">Treinar (+1 nível)</button>
-      <button onclick="transferPokemon('${c.id}')">Transferir</button>
+      <button onclick="confirmTransfer('${c.id}')">Transferir</button>
       <button onclick="closeDetails()">Fechar</button>
     </div>
   `;
@@ -258,6 +278,7 @@ function showDetails(id){
   modal.style.display = "flex";
 }
 
+// Level up
 function levelUpPokemon(id) {
   const p = state.collection.find(x => x.id === id);
   if (!p) return;
@@ -281,6 +302,15 @@ function levelUpPokemon(id) {
   renderCollection();
   showDetails(p.id);
   alert(p.name + " subiu para o nível " + p.level + "! (Custo: " + cost + " candies)");
+}
+
+// Transfer with confirmation
+function confirmTransfer(id) {
+  const p = state.collection.find(x => x.id === id);
+  if (!p) return;
+  if (confirm("Tem certeza que deseja transferir " + p.name + "?")) {
+    transferPokemon(id);
+  }
 }
 
 function transferPokemon(id){

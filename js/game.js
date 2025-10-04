@@ -352,12 +352,39 @@ function tryCatch() {
     const caught = { ...currentEncounter, caughtAt: Date.now() };
     state.collection.push(caught);
     const family = caught.base || caught.name.toLowerCase().replace(/\s+/g, "");
-    state.candies[family] = (state.candies[family] || 0) + 3;
+    
+    // Determina quantidade de doces baseado no estágio evolutivo
+    let candyAmount = 5; // Default: forma base
+    
+    // Verifica se este Pokémon pode evoluir
+    const canEvolve = caught.evolution && caught.evolution.to;
+    
+    // Verifica se algum Pokémon da mesma família evolui PARA este
+    const isEvolution = state.pokedex.some(p => 
+      p.base === caught.base && p.evolution && p.evolution.to === caught.name
+    );
+    
+    if (canEvolve) {
+      // Pode evoluir = forma base ou intermediária
+      if (isEvolution) {
+        candyAmount = 10; // É 1ª evolução E pode evoluir = intermediária
+      } else {
+        candyAmount = 5; // É forma base
+      }
+    } else if (isEvolution) {
+      // Não pode evoluir MAS é resultado de evolução = forma final
+      candyAmount = 15;
+    } else {
+      // Não pode evoluir E não é resultado de evolução = estágio único (como Delibird)
+      candyAmount = 5;
+    }
+    
+    state.candies[family] = (state.candies[family] || 0) + candyAmount;
     save();
     result.innerHTML = `<div style="text-align:center; color:#4CAF50; margin:20px 0;">
       <h3>🎉 Capturado com sucesso!</h3>
       <p>${caught.name} ${caught.shiny ? '⭐' : ''} adicionado à coleção</p>
-      <p>+3 doces de ${family}</p>
+      <p>+${candyAmount} doces de ${family}</p>
       <button onclick="explore()" style="background:#4CAF50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Explorar Mais</button>
     </div>`;
     renderCollection();

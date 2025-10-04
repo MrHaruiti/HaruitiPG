@@ -8,6 +8,12 @@ let state = {
 let currentEncounter = null;
 const shinyChance = 0.001;
 
+// Carregar tabela de CP Multipliers (CPM)
+let CPM = {};
+fetch("data/cpm.json")
+  .then(r => r.json())
+  .then(data => { CPM = data; });
+
 // Boot
 document.addEventListener("DOMContentLoaded", () => {
   load();
@@ -170,6 +176,7 @@ function tryCatch(){
     const iv = { atk: randIV(), def: randIV(), sta: randIV() };
     const family = currentEncounter.family || currentEncounter.base || currentEncounter.dex;
     const baseName = currentEncounter.base || currentEncounter.name.split(" ")[0];
+    const level = Math.floor(Math.random() * 50) + 1; // nível 1–50 na captura
 
     const entry = {
       id: "c" + Date.now(),
@@ -182,8 +189,8 @@ function tryCatch(){
       imgShiny: currentEncounter.imgShiny,
       shiny: currentEncounter.shiny,
       iv,
-      level: Math.floor(Math.random() * 50) + 1,
       stats: currentEncounter.stats,
+      level,
       capturedAt: new Date().toLocaleString()
     };
 
@@ -198,14 +205,18 @@ function tryCatch(){
 }
 function randIV(){ return Math.floor(Math.random() * 16); }
 
-// CP Calculation
+// CP Calculation oficial (Pokémon GO)
 function calculateCP(pokemon) {
-  const atk = (pokemon.stats?.atk || 0) + (pokemon.iv?.atk || 0);
-  const def = (pokemon.stats?.def || 0) + (pokemon.iv?.def || 0);
-  const sta = (pokemon.stats?.sta || 0) + (pokemon.iv?.sta || 0);
-  const lvlFactor = (pokemon.level || 1) / 100;
-  const cp = Math.floor((atk * Math.sqrt(def) * Math.sqrt(sta) * lvlFactor) / 10);
-  return cp < 10 ? 10 : cp;
+  if (!CPM || !pokemon.stats || !pokemon.iv || !pokemon.level) return 10;
+
+  const atk = pokemon.stats.atk + pokemon.iv.atk;
+  const def = pokemon.stats.def + pokemon.iv.def;
+  const sta = pokemon.stats.sta + pokemon.iv.sta;
+
+  const cpm = CPM[pokemon.level] || 0.1;
+
+  const cp = Math.floor((atk * Math.sqrt(def) * Math.sqrt(sta) * Math.pow(cpm, 2)) / 10);
+  return Math.max(10, cp);
 }
 
 // Candy cost formula

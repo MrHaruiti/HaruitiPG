@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-6 - CLEAN VERSION (FINALMENTE CORRIGIDO)
-console.log(">>> GAMEJS LOADED: v2025-10-04-6 - FINALMENTE CORRIGIDO CPM INTEIRO");
+// >>> GAMEJS LOADED: v2025-10-04-7 - COMPLETO C/ TRANSFERÊNCIA E LÓGICA DE DOCES
+console.log(">>> GAMEJS LOADED: v2025-10-04-7 - COMPLETO C/ TRANSFERÊNCIA E LÓGICA DE DOCES");
 
 // =========================
 // ESTADO GLOBAL
@@ -42,6 +42,14 @@ console.log("✅ Tabela CPM carregada:", Object.keys(state.cpmTable).length, "n�
 // =========================
 // FUNÇÕES AUXILIARES
 // =========================
+
+// Função para determinar a chave de doce (Família Base do Pokémon)
+function getCandyFamily(p) {
+    const baseName = p.base || p.name;
+    // Pega o campo 'base' ou 'name', converte para minúsculas e pega apenas a primeira palavra 
+    // (ex: "Charmander Pikachu Cap" -> "charmander")
+    return baseName.toLowerCase().split(' ')[0]; 
+}
 
 // Gerar nível aleatório entre 1 e 50 (se necessário)
 function getRandomLevel(min = 1, max = 50) {
@@ -312,6 +320,7 @@ function explore() {
     currentEncounter = { 
         ...p, 
         level: encounterLevel, // Novo nível
+        baseLevel: encounterLevel, // Guarda o nível base
         iv: encounterIVs,      // Novos IVs
         shiny: Math.random() < shinyChance 
     };
@@ -336,8 +345,6 @@ function calcCP(poke) {
         return 10;
     }
 
-    // CORREÇÃO: Garante que os stats base estejam presentes. Se estiverem faltando, 
-    // é porque o JSON do Venusaur está errado, o que forçaria a um CP baixo.
     const baseAtk = poke.stats?.atk || 100;
     const baseDef = poke.stats?.def || 100;
     const baseSta = poke.stats?.sta || 100;
@@ -402,7 +409,9 @@ function tryCatch() {
     if (success) {
         const caught = { ...currentEncounter, caughtAt: Date.now() };
         state.collection.push(caught);
-        const family = caught.base || caught.name.toLowerCase().replace(/\s+/g, "");
+        
+        // LÓGICA DE DOCES CORRIGIDA: Usa o nome base do Pokémon
+        const family = getCandyFamily(caught);
         
         let candyAmount = 5;
         const canEvolve = caught.evolution && caught.evolution.to;
@@ -461,7 +470,7 @@ function renderCollection() {
         div.className = "item clickable";
         div.innerHTML = `
           <img src="${p.img}" alt="${p.name}" style="width:72px; height:72px;" />
-          <div>${p.name} Lv.${p.level || 1}</div>
+          <div>${p.name} Lv.${p.baseLevel || p.level || 1}</div>
           <div>CP ${p.cp}</div>
         `;
         div.onclick = () => showDetails(idx);
@@ -472,14 +481,25 @@ function renderCollection() {
 function renderItems() {
     const box = document.getElementById("items");
     if (!box) return;
-    if (Object.keys(state.items).length === 0) {
-        box.innerHTML = "<div style='color:#ccc;'>Nenhum item disponível</div>";
+    const candyKeys = Object.keys(state.candies).filter(k => state.candies[k] > 0);
+
+    if (candyKeys.length === 0 && Object.keys(state.items).length === 0) {
+        box.innerHTML = "<div style='color:#ccc;'>Nenhum item ou doce disponível</div>";
         return;
     }
+    
     let html = "<div style='text-align:left;'>";
+    
+    // Itens
     Object.entries(state.items).forEach(([item, count]) => {
-        html += `<p>${item}: ${count}</p>`;
+        html += `<p>• ${item}: ${count}</p>`;
     });
+
+    // Doces
+    candyKeys.forEach(family => {
+        html += `<p>🍬 ${family} doces: ${state.candies[family]}</p>`;
+    });
+
     html += "</div>";
     box.innerHTML = html;
 }
@@ -493,12 +513,14 @@ function showDetails(idx) {
     const dImg = document.getElementById("dImg");
     const dInfo = document.getElementById("dInfo");
 
-    const family = p.base || p.name.toLowerCase().replace(/\s+/g, "");
+    // LÓGICA DE DOCES CORRIGIDA
+    const family = getCandyFamily(p);
     const candyCount = state.candies[family] || 0;
+    
     const currentLevel = p.baseLevel || p.level || 1;
     const isMaxLevel = currentLevel >= 100;
 
-    dName.innerText = `${p.name} Lv.${currentLevel} (CP ${p.cp})`;
+    dName.innerText = `${p.name} Lv.${currentLevel} (CP ${p.cp}) ${p.shiny ? '⭐' : ''}`;
     dImg.src = p.img;
     dImg.alt = p.name;
     
@@ -510,11 +532,12 @@ function showDetails(idx) {
       <p>Stats: Atk ${p.stats?.atk || 'N/A'}, Def ${p.stats?.def || 'N/A'}, Sta ${p.stats?.sta || 'N/A'}</p>
       ${ivText ? `<p>${ivText}</p>` : ''}
       <p>Doces de ${family}: ${candyCount}</p>
-      <div style="margin:10px 0;">
+      <div style="margin:10px 0; display: flex; flex-direction: column; gap: 5px;">
         <button onclick="trainPokemon(${idx})" ${isMaxLevel ? 'disabled' : ''}>
           Treinar (+1 Level, 5 doces) ${isMaxLevel ? '(MAX)' : ''}
         </button>
         <button onclick="startEvolution(${idx})">Evoluir (se possível)</button>
+        <button onclick="transferPokemon(${idx})" style="background:#f44336; color:white;">Transferir</button>
       </div>
       ${isMaxLevel ? `
         <div style="margin-top:15px; padding:10px; background:#2c2c2c; border-radius:8px;">
@@ -527,6 +550,39 @@ function showDetails(idx) {
       ` : ''}
     `;
     modal.style.display = "flex";
+}
+
+// =========================
+// TRANSFERÊNCIA
+// =========================
+function transferPokemon(idx) {
+    const p = state.collection[idx];
+    if (!p) return;
+
+    // Confirmação para evitar transferências acidentais
+    if (!confirm(`Tem certeza que deseja transferir ${p.name} (CP ${p.cp})? Você receberá 1 doce.`)) {
+        return;
+    }
+    
+    // 1. Determina a família de doces (usando a lógica mais robusta)
+    const family = getCandyFamily(p); 
+
+    // 2. Adiciona o doce
+    state.candies[family] = (state.candies[family] || 0) + 1;
+
+    // 3. Remove o Pokémon da coleção (usa o índice)
+    // O splice altera o array original.
+    state.collection.splice(idx, 1);
+
+    // 4. Salva o estado e atualiza a interface
+    save();
+    renderCollection();
+    renderItems();
+    
+    // 5. Fecha o pop-up
+    closeDetails();
+
+    alert(`✅ ${p.name} transferido com sucesso. Você recebeu 1 doce de ${family}!`);
 }
 
 // =========================
@@ -554,7 +610,8 @@ function activateMega(idx) {
             img: p.img,
             stats: {...p.stats},
             level: p.level,
-            cp: p.cp // Salva o CP original
+            cp: p.cp, // Salva o CP original
+            baseLevel: p.baseLevel || p.level // Garante que o nível base é mantido
         };
     }
     
@@ -592,7 +649,8 @@ function activateGmax(idx) {
             img: p.img,
             stats: {...p.stats},
             level: p.level,
-            cp: p.cp // Salva o CP original
+            cp: p.cp, // Salva o CP original
+            baseLevel: p.baseLevel || p.level
         };
     }
     
@@ -620,7 +678,8 @@ function activateDynamax(idx) {
             stats: {...p.stats},
             level: p.level,
             sta: p.stats.sta, // Salva o Sta original para desativar
-            cp: p.cp // Salva o CP original
+            cp: p.cp, // Salva o CP original
+            baseLevel: p.baseLevel || p.level
         };
     }
     
@@ -643,8 +702,9 @@ function deactivateSpecialForm(idx) {
         if (p.originalData.name) p.name = p.originalData.name;
         if (p.originalData.img) p.img = p.originalData.img;
         p.stats = {...p.originalData.stats};
-        // Usa o baseLevel se existir, senão o level original (de antes da forma especial)
-        p.level = p.baseLevel || p.originalData.level; 
+        // Restaura o nível base original (de antes da forma especial)
+        p.level = p.originalData.baseLevel; 
+        p.baseLevel = p.originalData.baseLevel;
     }
     
     p.tempForm = null;
@@ -662,9 +722,12 @@ function deactivateSpecialForm(idx) {
 function trainPokemon(idx) {
     const p = state.collection[idx];
     if (!p) return;
-    const family = p.base || p.name.toLowerCase().replace(/\s+/g, "");
+    
+    // LÓGICA DE DOCES CORRIGIDA
+    const family = getCandyFamily(p);
+    
     if ((state.candies[family] || 0) < 5) {
-        alert("Você precisa de pelo menos 5 doces para treinar!");
+        alert(`Você precisa de pelo menos 5 doces de ${family} para treinar!`);
         return;
     }
     
@@ -689,7 +752,10 @@ function startEvolution(idx) {
         alert(`${p?.name || 'Este Pokémon'} não pode evoluir.`);
         return;
     }
-    const family = p.base || p.name.toLowerCase().replace(/\s+/g, "");
+    
+    // LÓGICA DE DOCES CORRIGIDA
+    const family = getCandyFamily(p);
+    
     const cost = p.evolution.cost || 50;
     if ((state.candies[family] || 0) < cost) {
         alert(`Você precisa de ${cost} doces de ${family} para evoluir ${p.name}!`);

@@ -17,8 +17,7 @@ const shinyChance = 0.001;
 // =========================
 // BOOT
 // =========================
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadCPM(); // Aguarda CPM carregar
+document.addEventListener("DOMContentLoaded", async () => {// Aguarda CPM carregar
   load();
   await loadRegion("kanto"); // Aguarda região carregar
   showTab("explore");
@@ -28,20 +27,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // =========================
-// CARREGAR TABELA CPM
+// CPM EMBUTIDA NO CÓDIGO
 // =========================
-async function loadCPM() {
-  try {
-    const res = await fetch('data/cpm.json');
-    state.cpmTable = await res.json();
-    console.log("✅ Tabela CPM carregada com sucesso!", Object.keys(state.cpmTable).length, "níveis");
-  } catch (e) {
-    console.error("❌ Erro ao carregar CPM:", e);
-    // Fallback: cria tabela básica se não conseguir carregar
-    state.cpmTable = {};
-    for (let i = 0; i <= 100; i++) {
-      state.cpmTable[i] = 0.094 + (i * 0.0158);
-    }
+state.cpmTable = {};
+for (let i = 1; i <= 100; i++) {
+  state.cpmTable[i] = 0.1 + (i / 100) * 1.9;
+}
+state.cpmTable[102] = 0.1 + (102 / 100) * 1.9; // Dynamax
+state.cpmTable[105] = 0.1 + (105 / 100) * 1.9; // Gmax
+state.cpmTable[110] = 0.1 + (110 / 100) * 1.9; // Mega
     console.log("⚠️ Usando tabela CPM de fallback");
   }
 }

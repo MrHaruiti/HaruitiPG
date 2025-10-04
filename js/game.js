@@ -40,8 +40,6 @@ state.cpmTable[102] = 0.1 + (102 / 100) * 1.9; // Dynamax
 state.cpmTable[105] = 0.1 + (105 / 100) * 1.9; // Gmax
 state.cpmTable[110] = 0.1 + (110 / 100) * 1.9; // Mega
     console.log("⚠️ Usando tabela CPM de fallback");
-  }
-}
 
 // =========================
 // PERSISTÊNCIA

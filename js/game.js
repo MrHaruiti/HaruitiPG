@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-2 - CANDY FIX
-console.log(">>> GAMEJS LOADED: v2025-10-04-2 - CANDY FIX");
+// >>> GAMEJS LOADED: v2025-10-04-3 - DATABASE FIX (Shiny + Click Forms)
+console.log(">>> GAMEJS LOADED: v2025-10-04-3 - DATABASE FIX");
 
 // =========================
 // ESTADO GLOBAL
@@ -126,7 +126,7 @@ function renderPokedex(region) {
 }
 
 // =========================
-// MODAL
+// MODAL - CORRIGIDO
 // =========================
 function showAllForms(dex) {
   const modal = document.getElementById('detailModal');
@@ -138,37 +138,80 @@ function showAllForms(dex) {
   const dImg = document.getElementById("dImg");
   const dInfo = document.getElementById("dInfo");
 
-  dName.innerText = `${forms[0].name} - Todas as Formas`;
-  dImg.src = forms[0].img || "";
+  // Define a primeira forma como principal
+  const mainForm = forms[0];
+  dName.innerText = `${mainForm.name} - Todas as Formas`;
+  dImg.src = mainForm.img || "";
   dInfo.innerHTML = "";
 
+  // Adiciona todas as formas (normal + shiny)
   forms.forEach(f => {
     const row = document.createElement("div");
-    row.innerHTML = `
-      <img src="${f.img}" width="48" height="48" style="cursor:pointer; margin-right:10px;" alt="${f.name}" onclick="setMainForm(${JSON.stringify(f).replace(/"/g, '&quot;')})" />
-      <span><b>${f.name}</b> - ${f.rarity || 'N/A'}</span>
-    `;
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.marginBottom = "10px";
+    row.style.cursor = "pointer";
+    
+    // Versão Normal
+    const normalImg = document.createElement("img");
+    normalImg.src = f.img;
+    normalImg.width = 48;
+    normalImg.height = 48;
+    normalImg.style.marginRight = "10px";
+    normalImg.style.cursor = "pointer";
+    normalImg.onclick = () => setMainForm(f, false);
+    
+    // Versão Shiny (se existir)
+    let shinyImg = null;
+    if (f.imgShiny) {
+      shinyImg = document.createElement("img");
+      shinyImg.src = f.imgShiny;
+      shinyImg.width = 48;
+      shinyImg.height = 48;
+      shinyImg.style.marginRight = "10px";
+      shinyImg.style.cursor = "pointer";
+      shinyImg.style.border = "2px solid #FFD700";
+      shinyImg.style.borderRadius = "8px";
+      shinyImg.onclick = () => setMainForm(f, true);
+    }
+    
+    const label = document.createElement("span");
+    label.innerHTML = `<b>${f.name}</b> - ${f.rarity || 'N/A'}`;
+    
+    row.appendChild(normalImg);
+    if (shinyImg) row.appendChild(shinyImg);
+    row.appendChild(label);
     dInfo.appendChild(row);
   });
 
   modal.style.display = "flex";
 }
 
-function setMainForm(formJsonString) {
-  const form = JSON.parse(formJsonString);
+function setMainForm(form, isShiny) {
   const dImg = document.getElementById("dImg");
   const dName = document.getElementById("dName");
   const dInfo = document.getElementById("dInfo");
 
-  dImg.src = form.img || "";
-  dName.innerText = form.name + (form.shiny ? " ⭐" : "");
-  dInfo.innerHTML = `
-    <div style="margin:10px 0;">
-      <p><b>#${form.dex}</b> - Raridade: ${form.rarity || 'N/A'}</p>
-      <p>Stats: Atk ${form.stats?.atk || 'N/A'} | Def ${form.stats?.def || 'N/A'} | Sta ${form.stats?.sta || 'N/A'}</p>
-      <p>Family: ${form.family || 'N/A'} (Evolui para: ${form.evolvesTo || 'N/A'})</p>
-    </div>
+  // Atualiza imagem principal
+  dImg.src = isShiny && form.imgShiny ? form.imgShiny : form.img;
+  dName.innerText = form.name + (isShiny ? " ⭐ (Shiny)" : "");
+  
+  // Atualiza informações
+  const infoDiv = document.createElement("div");
+  infoDiv.style.marginTop = "15px";
+  infoDiv.style.padding = "10px";
+  infoDiv.style.background = "#2c2c2c";
+  infoDiv.style.borderRadius = "8px";
+  infoDiv.innerHTML = `
+    <p><b>#${form.dex}</b> - Raridade: ${form.rarity || 'N/A'}</p>
+    <p>Stats: Atk ${form.stats?.atk || 'N/A'} | Def ${form.stats?.def || 'N/A'} | Sta ${form.stats?.sta || 'N/A'}</p>
+    <p>Base: ${form.base || 'N/A'} ${form.evolution ? `(Evolui para: ${form.evolution.to} - ${form.evolution.cost} doces)` : ''}</p>
   `;
+  
+  // Mantém a lista de formas, apenas adiciona as infos
+  const existingInfo = dInfo.querySelector('div[style*="margin-top: 15px"]');
+  if (existingInfo) existingInfo.remove();
+  dInfo.appendChild(infoDiv);
 }
 
 function closeDetails() {
@@ -218,7 +261,7 @@ function tryCatch() {
   if (success) {
     const caught = { ...currentEncounter, caughtAt: Date.now() };
     state.collection.push(caught);
-    const family = caught.family || caught.name.toLowerCase().replace(/\s+/g, "");
+    const family = caught.base || caught.name.toLowerCase().replace(/\s+/g, "");
     state.candies[family] = (state.candies[family] || 0) + 3;
     save();
     result.innerHTML = `<div style="text-align:center; color:#4CAF50; margin:20px 0;">
@@ -266,7 +309,6 @@ function renderCollection() {
   });
 }
 
-// ⚠️ Candy removido do inventário
 function renderItems() {
   const box = document.getElementById("items");
   if (!box) return;
@@ -291,7 +333,7 @@ function showDetails(idx) {
   const dImg = document.getElementById("dImg");
   const dInfo = document.getElementById("dInfo");
 
-  const family = p.family || p.name.toLowerCase().replace(/\s+/g, "");
+  const family = p.base || p.name.toLowerCase().replace(/\s+/g, "");
   const candyCount = state.candies[family] || 0;
 
   dName.innerText = `${p.name} Lv.${p.level || 1} (CP ${p.cp})`;
@@ -315,7 +357,7 @@ function showDetails(idx) {
 function trainPokemon(idx) {
   const p = state.collection[idx];
   if (!p) return;
-  const family = p.family || p.name.toLowerCase().replace(/\s+/g, "");
+  const family = p.base || p.name.toLowerCase().replace(/\s+/g, "");
   if ((state.candies[family] || 0) < 5) {
     alert("Você precisa de pelo menos 5 doces para treinar!");
     return;
@@ -330,26 +372,27 @@ function trainPokemon(idx) {
 
 function startEvolution(idx) {
   const p = state.collection[idx];
-  if (!p || !p.evolvesTo) {
+  if (!p || !p.evolution) {
     alert(`${p?.name || 'Este Pokémon'} não pode evoluir.`);
     return;
   }
-  const family = p.family || p.name.toLowerCase().replace(/\s+/g, "");
-  if ((state.candies[family] || 0) < 50) {
-    alert(`Você precisa de 50 doces de ${family} para evoluir ${p.name}!`);
+  const family = p.base || p.name.toLowerCase().replace(/\s+/g, "");
+  const cost = p.evolution.cost || 50;
+  if ((state.candies[family] || 0) < cost) {
+    alert(`Você precisa de ${cost} doces de ${family} para evoluir ${p.name}!`);
     return;
   }
   const nextEvolution = state.pokedex.find(
-    poke => poke.name === p.evolvesTo && (poke.form === "normal" || !poke.form)
+    poke => poke.name === p.evolution.to && (poke.form === "normal" || !poke.form)
   );
   if (!nextEvolution) return;
-  state.candies[family] -= 50;
+  state.candies[family] -= cost;
   p.name = nextEvolution.name;
   p.dex = nextEvolution.dex;
   p.img = nextEvolution.img;
   p.rarity = nextEvolution.rarity;
   p.stats = nextEvolution.stats;
-  p.evolvesTo = nextEvolution.evolvesTo;
+  p.evolution = nextEvolution.evolution;
   p.cp = calcCP(p);
   save();
   renderCollection();

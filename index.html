@@ -4,65 +4,95 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pokémon Fangame</title>
+  <!-- Favicon para resolver 404 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="js/game.js" defer></script>
 </head>
 <body>
 <header>
   <h1>Pokémon Fangame</h1>
-  <nav>
-    <button onclick="showTab('explore')">Explorar</button>
-    <button onclick="showTab('battle')">Batalha</button>
-    <button onclick="showTab('database')">Database</button>
-    <button onclick="showTab('bag')">Bag</button>
+  <!-- Status bar para XP, nível e energia -->
+  <div id="playerStatus" class="status-bar">
+    <span>Nível: <span id="playerLevel">1</span> | XP: <span id="playerXP">0</span> | Energia: <span id="playerEnergy">100</span>/100</span>
+  </div>
+  <nav role="tablist" aria-label="Navegação principal">
+    <button onclick="showTab('explore')" role="tab" aria-selected="true">Explorar</button>
+    <button onclick="showTab('battle')" role="tab">Batalha</button>
+    <button onclick="showTab('database')" role="tab">Database</button>
+    <button onclick="showTab('bag')" role="tab">Bag</button>
   </nav>
 </header>
 
 <main class="wrap">
   <!-- EXPLORAR -->
-  <section id="tab-explore" class="tab">
+  <section id="tab-explore" class="tab" role="tabpanel">
     <div class="card">
       <h2>🌍 Exploração</h2>
-      <button onclick="explore()">Explorar</button>
+      <button onclick="explore()" class="btn-catch">Explorar</button>
       <div id="exploreResult"></div>
     </div>
   </section>
 
   <!-- BATALHA -->
-  <section id="tab-battle" class="tab" style="display:none">
-    <div class="card"><h2>⚔️ Batalha</h2><div>Em breve...</div></div>
+  <section id="tab-battle" class="tab" style="display:none" role="tabpanel">
+    <div class="card">
+      <h2>⚔️ Batalha</h2>
+      <div id="battleContent">Selecione um Pokémon da sua coleção para batalhar. Em breve: sistema de turnos!</div>
+    </div>
   </section>
 
   <!-- DATABASE -->
-  <section id="tab-database" class="tab" style="display:none">
+  <section id="tab-database" class="tab" style="display:none" role="tabpanel">
     <div class="card">
       <h2>📚 Database</h2>
-      <div class="subtabs">
-        <button onclick="showSubTab('db-kanto')">Kanto</button>
-        <button onclick="showSubTab('db-johto')">Johto</button>
-        <button onclick="showSubTab('db-hoenn')">Hoenn</button>
-        <button onclick="showSubTab('db-sinnoh')">Sinnoh</button>
-        <button onclick="showSubTab('db-unova')">Unova</button>
-        <button onclick="showSubTab('db-kalos')">Kalos</button>
-        <button onclick="showSubTab('db-alola')">Alola</button>
-        <button onclick="showSubTab('db-galar')">Galar</button>
-        <button onclick="showSubTab('db-paldea')">Paldea</button>
+      <div class="subtabs" role="tablist" aria-label="Regiões Pokémon">
+        <button onclick="showSubTab('db-kanto')" role="tab">Kanto</button>
+        <button onclick="showSubTab('db-johto')" role="tab">Johto</button>
+        <button onclick="showSubTab('db-hoenn')" role="tab">Hoenn</button>
+        <button onclick="showSubTab('db-sinnoh')" role="tab">Sinnoh</button>
+        <button onclick="showSubTab('db-unova')" role="tab">Unova</button>
+        <button onclick="showSubTab('db-kalos')" role="tab">Kalos</button>
+        <button onclick="showSubTab('db-alola')" role="tab">Alola</button>
+        <button onclick="showSubTab('db-galar')" role="tab">Galar</button>
+        <button onclick="showSubTab('db-paldea')" role="tab">Paldea</button>
       </div>
 
-      <div id="db-kanto" class="subtab"><div class="card"><h2>Kanto</h2><div class="list"></div></div></div>
-      <div id="db-johto" class="subtab" style="display:none"><div class="card"><h2>Johto</h2>Em breve...</div></div>
-      <div id="db-hoenn" class="subtab" style="display:none"><div class="card"><h2>Hoenn</h2>Em breve...</div></div>
-      <div id="db-sinnoh" class="subtab" style="display:none"><div class="card"><h2>Sinnoh</h2>Em breve...</div></div>
-      <div id="db-unova" class="subtab" style="display:none"><div class="card"><h2>Unova</h2>Em breve...</div></div>
-      <div id="db-kalos" class="subtab" style="display:none"><div class="card"><h2>Kalos</h2>Em breve...</div></div>
-      <div id="db-alola" class="subtab" style="display:none"><div class="card"><h2>Alola</h2>Em breve...</div></div>
-      <div id="db-galar" class="subtab" style="display:none"><div class="card"><h2>Galar</h2>Em breve...</div></div>
-      <div id="db-paldea" class="subtab" style="display:none"><div class="card"><h2>Paldea</h2>Em breve...</div></div>
+      <div id="db-kanto" class="subtab" role="tabpanel">
+        <div class="card">
+          <h2>Kanto</h2>
+          <div class="list"></div>
+        </div>
+      </div>
+      <div id="db-johto" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Johto</h2><div class="list"></div></div>
+      </div>
+      <div id="db-hoenn" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Hoenn</h2>Em breve...</div>
+      </div>
+      <div id="db-sinnoh" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Sinnoh</h2>Em breve...</div>
+      </div>
+      <div id="db-unova" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Unova</h2>Em breve...</div>
+      </div>
+      <div id="db-kalos" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Kalos</h2>Em breve...</div>
+      </div>
+      <div id="db-alola" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Alola</h2>Em breve...</div>
+      </div>
+      <div id="db-galar" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Galar</h2>Em breve...</div>
+      </div>
+      <div id="db-paldea" class="subtab" style="display:none" role="tabpanel">
+        <div class="card"><h2>Paldea</h2>Em breve...</div>
+      </div>
     </div>
   </section>
 
   <!-- BAG -->
-  <section id="tab-bag" class="tab" style="display:none">
+  <section id="tab-bag" class="tab" style="display:none" role="tabpanel">
     <div class="card">
       <h2>🎒 Bag</h2>
       <div class="bag-columns">
@@ -79,22 +109,23 @@
   </section>
 </main>
 
-<!-- Modal Detalhes -->
-<div id="detailModal" class="modal">
+<!-- Modal Detalhes (garantido com todos os IDs) -->
+<div id="detailModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="dName">
   <div class="modal-content" id="detailBox">
     <h2 id="dName"></h2>
     <img id="dImg" src="" alt="">
     <div id="dInfo"></div>
     <div style="margin-top:10px;">
-      <button onclick="closeDetails()">Fechar</button>
+      <button onclick="closeDetails()" class="btn-close">Fechar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Evolução -->
-<div id="evolutionModal" style="display:none;">
+<!-- Modal Evolução (garantido com IDs) -->
+<div id="evolutionModal" style="display:none;" role="dialog" aria-modal="true">
   <div id="evoText">Seu Pokémon está evoluindo...</div>
   <img id="evoImg" src="" alt="Evoluindo">
+  <button onclick="closeEvolution()" class="btn-close" style="margin-top:10px;">Fechar</button>
 </div>
 
 </body>

@@ -1,3 +1,6 @@
+// >>> GAMEJS LOADED: v2025-10-04-1
+console.log(">>> GAMEJS LOADED: v2025-10-04-1");
+
 // =========================
 // ESTADO GLOBAL
 // =========================
@@ -65,61 +68,54 @@ function showSubTab(id){
 // =========================
 // DATABASE / POKEDEX
 // =========================
-// Carrega index.json de região — suporta:
-// - formato A: ["BulbasaurFamily.json", "CharmanderFamily.json"]
-// - formato B: { "families": [ "BulbasaurFamily.json", ... ] }
+// Suporta index.json como array ou { families: [] }
+// Também faz logs claros para debug.
 async function loadRegion(region){
   try {
     const res = await fetch(`data/${region}/index.json`);
     if (!res.ok) throw new Error(`index.json HTTP ${res.status}`);
     const json = await res.json();
 
-    // Normaliza families para um array de strings
     let families = [];
     if (Array.isArray(json)) families = json;
     else if (json && Array.isArray(json.families)) families = json.families;
     else {
-      console.warn("loadRegion: index.json tem formato inesperado; esperando array ou { families: [] }", json);
-      // tenta inferir arquivos no diretório (não disponível via fetch), então aborta
+      console.warn("loadRegion: index.json formato inesperado:", json);
       families = [];
     }
 
+    // Normaliza strings (remove espaços estranhos)
+    families = families.map(f => typeof f === "string" ? f : "").filter(Boolean);
+
     state.pokedex = [];
 
-    // carrega cada family file (ignora erros individuais)
     for (const fam of families){
+      const fname = fam.endsWith(".json") ? fam : fam + ".json";
       try {
-        // se o nome já vier com extensão, usa; se não, acrescenta .json
-        const fname = fam.endsWith(".json") ? fam : fam + ".json";
-        const r2 = await fetch(`data/${region}/${encodeURIComponent(fname)}`);
+        // use encodeURIComponent para nomes com espaços
+        const url = `data/${region}/${encodeURIComponent(fname)}`;
+        const r2 = await fetch(url);
         if (!r2.ok) {
-          console.warn("loadRegion: não encontrou arquivo da família", fname, "status", r2.status);
+          console.warn("loadRegion: não encontrou", fname, "status", r2.status);
           continue;
         }
         const d2 = await r2.json();
-        if (Array.isArray(d2)) {
-          state.pokedex.push(...d2);
-        } else if (Array.isArray(d2.pokemon)) {
-          // suporte a outro formato: { pokemon: [...] }
-          state.pokedex.push(...d2.pokemon);
-        } else {
-          // se for um único objeto (uma família onde cada entry é uma forma), tenta extrair
-          if (Array.isArray(Object.values(d2))) {
-            // procurar por array dentro do objeto
-            const arr = Object.values(d2).find(v => Array.isArray(v));
-            if (arr) state.pokedex.push(...arr);
-            else console.warn("loadRegion: formato family.json inesperado para", fname);
-          }
+        if (Array.isArray(d2)) state.pokedex.push(...d2);
+        else if (Array.isArray(d2.pokemon)) state.pokedex.push(...d2.pokemon);
+        else {
+          // Tenta extrair arrays dentro do objeto (fallback)
+          const arr = Object.values(d2).find(v => Array.isArray(v));
+          if (arr) state.pokedex.push(...arr);
+          else console.warn("loadRegion: formato family.json inesperado para", fname);
         }
-      } catch (errFam) {
-        console.error("Erro carregando family file:", fam, errFam);
+      } catch (eFam) {
+        console.error("Erro lendo family file", fam, eFam);
       }
     }
 
     renderPokedex(region);
   } catch (err) {
     console.error("Erro carregando região", region, err);
-    // atualiza UI pra mostrar erro
     const box = document.querySelector(`#db-${region} .list`);
     if (box) box.innerHTML = "<div>Erro ao carregar Pokédex.</div>";
     state.pokedex = [];
@@ -139,13 +135,12 @@ function renderPokedex(region){
   const shown = new Set();
 
   sorted.forEach(p => {
-    // se p.form não existir considera como normal
     if ((p.form === "normal" || !p.form) && !shown.has(p.dex)) {
       shown.add(p.dex);
       const div = document.createElement("div");
       div.className = "item clickable";
       div.innerHTML = `
-        <img class="sprite" src="${p.img || ''}" alt="${p.name || '??'}"/>
+        <img class="sprite" src="${p.img || ''}" alt="${(p.name||'?')}"/>
         <div>${p.name || '???'}</div>
       `;
       div.onclick = () => showAllForms(p.dex);
@@ -155,7 +150,7 @@ function renderPokedex(region){
 }
 
 // =========================
-// MODAL TODAS AS FORMAS
+// MODAL FORMAS
 // =========================
 function showAllForms(dex){
   try {
@@ -166,17 +161,11 @@ function showAllForms(dex){
     const dName = document.getElementById("dName");
     const dImg  = document.getElementById("dImg");
     const dInfo = document.getElementById("dInfo");
-
-    if (!dName || !dImg || !dInfo) {
-      console.error("showAllForms: modal elements missing (dName/dImg/dInfo)");
-      return;
-    }
+    if (!dName || !dImg || !dInfo) { console.error("Modal elements missing"); return; }
 
     dName.innerText = `${baseName} — Todas as formas`;
     dImg.src = forms[0].img || "";
     dImg.alt = baseName;
-
-    // limpa informações
     dInfo.innerHTML = "";
 
     forms.forEach((f, idx) => {
@@ -201,7 +190,6 @@ function showAllForms(dex){
       img.style.cursor = "pointer";
       img.className = "clickable";
       img.addEventListener("click", () => setMainForm(f));
-
       left.appendChild(img);
 
       if (f.imgShiny) {
@@ -218,7 +206,6 @@ function showAllForms(dex){
       const infoCol = document.createElement("div");
       infoCol.style.textAlign = "left";
       infoCol.innerHTML = `<b>${f.name || "?"}</b><div style="font-size:12px; color:#ccc">${f.rarity || ""}</div>`;
-
       left.appendChild(infoCol);
       row.appendChild(left);
 
@@ -250,19 +237,18 @@ function setMainForm(form){
     dImg.alt = form.name || dName.innerText || "Pokémon";
     dName.innerText = (form.name || "Forma") + (form.shiny ? " ⭐" : "");
 
-    // mostra detalhes rápidos (stats)
+    const prev = dInfo.querySelector(".form-extra");
+    if (prev) prev.remove();
+    const holder = document.createElement("div");
+    holder.className = "form-extra";
+    holder.style.marginBottom = "8px";
+
     let extra = "";
     if (form.dex) extra += `<div><b>#${form.dex}</b></div>`;
     if (form.rarity) extra += `<div>Raridade: ${form.rarity}</div>`;
     if (form.base) extra += `<div>Base: ${form.base}</div>`;
     if (form.stats) extra += `<div>Stats — Atk:${form.stats.atk||'N/A'} Def:${form.stats.def||'N/A'} Sta:${form.stats.sta||'N/A'}</div>`;
 
-    // insere antes da lista de formas
-    const prev = dInfo.querySelector(".form-extra");
-    if (prev) prev.remove();
-    const holder = document.createElement("div");
-    holder.className = "form-extra";
-    holder.style.marginBottom = "8px";
     holder.innerHTML = extra;
     dInfo.insertBefore(holder, dInfo.firstChild);
   } catch (err) {
@@ -271,7 +257,7 @@ function setMainForm(form){
 }
 
 // =========================
-// EXPLORAÇÃO E CAPTURA
+// EXPLORAÇÃO
 // =========================
 function explore(){
   if (state.pokedex.length === 0){
@@ -299,7 +285,7 @@ function tryCatch(){
   if (success){
     const iv = { atk: randIV(), def: randIV(), sta: randIV() };
     const family = currentEncounter.family || currentEncounter.base || currentEncounter.dex;
-    const baseName = currentEncounter.base || currentEncounter.name.split(" ")[0];
+    const baseName = currentEncounter.base || (currentEncounter.name ? currentEncounter.name.split(" ")[0] : "Pokémon");
 
     const entry = {
       id: "c" + Date.now(),
@@ -462,17 +448,16 @@ function startEvolution(pokemon){
 }
 
 // =========================
-// CÁLCULO DE CP (simples, integrado ao game)
+// CÁLCULO DE CP
 // =========================
 function calcCP(p){
   if (!p.iv || !p.level) return 10;
-  // cálculo simples: soma de IVs multiplicada pelo nível — já dá resultado coerente no jogo
   const base = (p.iv.atk + p.iv.def + p.iv.sta);
   return Math.max(10, Math.floor(base * (p.level/10)));
 }
 
 // =========================
-// Fecha modal ao clicar no backdrop (melhora UX)
+// Fecha modal ao clicar no backdrop
 // =========================
 (function enableBackdropClose(){
   document.addEventListener("DOMContentLoaded", () => {

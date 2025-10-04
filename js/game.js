@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-6 - CLEAN VERSION (CORRIGIDO)
-console.log(">>> GAMEJS LOADED: v2025-10-04-6 - CORRIGIDO CP/LEVEL/IV");
+// >>> GAMEJS LOADED: v2025-10-04-6 - CLEAN VERSION (FINALMENTE CORRIGIDO)
+console.log(">>> GAMEJS LOADED: v2025-10-04-6 - FINALMENTE CORRIGIDO CPM INTEIRO");
 
 // =========================
 // ESTADO GLOBAL
@@ -9,28 +9,29 @@ let state = {
     collection: [],
     candies: {},
     items: {},
-    // Tabela CPM PADRÃO DE POKÉMON GO (para evitar erros de cálculo e NaN)
+    // TABELA CPM CORRIGIDA PARA NÍVEIS INTEIROS (1 a 100)
     cpmTable: {
-        "1": 0.09400000, "1.5": 0.13513700, "2": 0.16639797, "2.5": 0.19265091, "3": 0.21573247,
-        "3.5": 0.23657266, "4": 0.25572015, "4.5": 0.27353038, "5": 0.29024988, "5.5": 0.30606000,
-        "6": 0.32085764, "6.5": 0.33490000, "7": 0.34790000, "7.5": 0.36000000, "8": 0.37200000,
-        "8.5": 0.38300000, "9": 0.39400000, "9.5": 0.40400000, "10": 0.41400000, "10.5": 0.42500000,
-        "11": 0.43500000, "11.5": 0.44500000, "12": 0.45500000, "12.5": 0.46500000, "13": 0.47400000,
-        "13.5": 0.48400000, "14": 0.49400000, "14.5": 0.50300000, "15": 0.51200000, "15.5": 0.52100000,
-        "16": 0.53000000, "16.5": 0.53900000, "17": 0.54800000, "17.5": 0.55600000, "18": 0.56500000,
-        "18.5": 0.57300000, "19": 0.58100000, "19.5": 0.59000000, "20": 0.59800000, "20.5": 0.60600000,
-        "21": 0.61400000, "21.5": 0.62200000, "22": 0.63000000, "22.5": 0.63700000, "23": 0.64500000,
-        "23.5": 0.65300000, "24": 0.66000000, "24.5": 0.66700000, "25": 0.67500000, "25.5": 0.68200000,
-        "26": 0.68900000, "26.5": 0.69600000, "27": 0.70300000, "27.5": 0.71000000, "28": 0.71700000,
-        "28.5": 0.72400000, "29": 0.73100000, "29.5": 0.73700000, "30": 0.74400000, "30.5": 0.75078559,
-        "31": 0.75735955, "31.5": 0.76376168, "32": 0.77000000, "32.5": 0.77610000, "33": 0.78210000,
-        "33.5": 0.78810000, "34": 0.79400000, "34.5": 0.80000000, "35": 0.80600000, "35.5": 0.81200000,
-        "36": 0.81800000, "36.5": 0.82400000, "37": 0.83000000, "37.5": 0.83700000, "38": 0.84300000,
-        "38.5": 0.85000000, "39": 0.85600000, "39.5": 0.86300000, "40": 0.87000000, "40.5": 0.87600000,
-        "41": 0.88200000, "41.5": 0.88800000, "42": 0.89400000, "42.5": 0.90000000, "43": 0.90600000,
-        "43.5": 0.91200000, "44": 0.91800000, "44.5": 0.92400000, "45": 0.93000000, "45.5": 0.93600000,
-        "46": 0.94200000, "46.5": 0.94800000, "47": 0.95400000, "47.5": 0.96000000, "48": 0.96600000,
-        "48.5": 0.97200000, "49": 0.97800000, "49.5": 0.98400000, "50": 0.99000000
+        "1": 0.094000, "2": 0.166398, "3": 0.215732, "4": 0.255720, "5": 0.290250,
+        "6": 0.320858, "7": 0.349213, "8": 0.375236, "9": 0.399567, "10": 0.422500,
+        "11": 0.443107, "12": 0.462798, "13": 0.481685, "14": 0.499858, "15": 0.517394,
+        "16": 0.534354, "17": 0.550793, "18": 0.566755, "19": 0.582278, "20": 0.597400,
+        "21": 0.612157, "22": 0.626567, "23": 0.640653, "24": 0.654435, "25": 0.667934,
+        "26": 0.681165, "27": 0.694144, "28": 0.706883, "29": 0.719398, "30": 0.731700,
+        "31": 0.743809, "32": 0.755736, "33": 0.767489, "34": 0.779075, "35": 0.790500,
+        "36": 0.801772, "37": 0.812903, "38": 0.823899, "39": 0.834768, "40": 0.845517,
+        "41": 0.856154, "42": 0.866686, "43": 0.877119, "44": 0.887459, "45": 0.897711,
+        "46": 0.907879, "47": 0.917968, "48": 0.927983, "49": 0.937929, "50": 0.947812,
+        // Níveis 51 a 100 (extrapolados em passos de 1 para o seu modelo)
+        "51": 0.957636, "52": 0.967406, "53": 0.977126, "54": 0.986800, "55": 0.996431,
+        "56": 1.006020, "57": 1.015570, "58": 1.025083, "59": 1.034560, "60": 1.044005,
+        "61": 1.053417, "62": 1.062800, "63": 1.072153, "64": 1.081479, "65": 1.090778,
+        "66": 1.100052, "67": 1.109302, "68": 1.118528, "69": 1.127731, "70": 1.136913,
+        "71": 1.146073, "72": 1.155212, "73": 1.164332, "74": 1.173432, "75": 1.182513,
+        "76": 1.191576, "77": 1.200621, "78": 1.209648, "79": 1.218658, "80": 1.227652,
+        "81": 1.236630, "82": 1.245591, "83": 1.254537, "84": 1.263467, "85": 1.272383,
+        "86": 1.281285, "87": 1.290172, "88": 1.299046, "89": 1.307906, "90": 1.316753,
+        "91": 1.325586, "92": 1.334407, "93": 1.343214, "94": 1.352010, "95": 1.360792,
+        "96": 1.369563, "97": 1.378322, "98": 1.387069, "99": 1.395805, "100": 1.404530
     }
 };
 let currentEncounter = null;
@@ -76,8 +77,32 @@ function load() {
     if (s) {
         try {
             state = JSON.parse(s);
-            // CORREÇÃO: Força o uso da tabela CPM correta se a salva for inválida
-            state.cpmTable = state.cpmTable || { "1": 0.09400000, "50": 0.99000000 }; 
+            // Mantém a tabela CPM corrigida para evitar erros de leitura de versões antigas
+            if (!state.cpmTable || Object.keys(state.cpmTable).length < 100) {
+                 state.cpmTable = { // Recarrega a tabela correta se a salva estiver ruim
+                    "1": 0.094000, "2": 0.166398, "3": 0.215732, "4": 0.255720, "5": 0.290250,
+                    "6": 0.320858, "7": 0.349213, "8": 0.375236, "9": 0.399567, "10": 0.422500,
+                    "11": 0.443107, "12": 0.462798, "13": 0.481685, "14": 0.499858, "15": 0.517394,
+                    "16": 0.534354, "17": 0.550793, "18": 0.566755, "19": 0.582278, "20": 0.597400,
+                    "21": 0.612157, "22": 0.626567, "23": 0.640653, "24": 0.654435, "25": 0.667934,
+                    "26": 0.681165, "27": 0.694144, "28": 0.706883, "29": 0.719398, "30": 0.731700,
+                    "31": 0.743809, "32": 0.755736, "33": 0.767489, "34": 0.779075, "35": 0.790500,
+                    "36": 0.801772, "37": 0.812903, "38": 0.823899, "39": 0.834768, "40": 0.845517,
+                    "41": 0.856154, "42": 0.866686, "43": 0.877119, "44": 0.887459, "45": 0.897711,
+                    "46": 0.907879, "47": 0.917968, "48": 0.927983, "49": 0.937929, "50": 0.947812,
+                    "51": 0.957636, "52": 0.967406, "53": 0.977126, "54": 0.986800, "55": 0.996431,
+                    "56": 1.006020, "57": 1.015570, "58": 1.025083, "59": 1.034560, "60": 1.044005,
+                    "61": 1.053417, "62": 1.062800, "63": 1.072153, "64": 1.081479, "65": 1.090778,
+                    "66": 1.100052, "67": 1.109302, "68": 1.118528, "69": 1.127731, "70": 1.136913,
+                    "71": 1.146073, "72": 1.155212, "73": 1.164332, "74": 1.173432, "75": 1.182513,
+                    "76": 1.191576, "77": 1.200621, "78": 1.209648, "79": 1.218658, "80": 1.227652,
+                    "81": 1.236630, "82": 1.245591, "83": 1.254537, "84": 1.263467, "85": 1.272383,
+                    "86": 1.281285, "87": 1.290172, "88": 1.299046, "89": 1.307906, "90": 1.316753,
+                    "91": 1.325586, "92": 1.334407, "93": 1.343214, "94": 1.352010, "95": 1.360792,
+                    "96": 1.369563, "97": 1.378322, "98": 1.387069, "99": 1.395805, "100": 1.404530
+                };
+            }
+
         } catch {
             state = { pokedex: [], collection: [], candies: {}, items: {} };
         }
@@ -130,6 +155,7 @@ async function loadRegion(region) {
         }
     } catch {
         if (region === "kanto") {
+            // Este é o fallback que precisa dos stats corretos do Bulbasaur
             state.pokedex = [
                 { dex: 1, name: "Bulbasaur", form: "normal", rarity: "Comum", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png", baseCatch: 45, base: "Bulbasaur", stats: {atk: 118, def: 111, sta: 128}, evolution: {to: "Ivysaur", cost: 25} }
             ];
@@ -279,7 +305,7 @@ function explore() {
     
     const p = wildPokemon[Math.floor(Math.random() * wildPokemon.length)];
     
-    // CORREÇÃO: Inicializa Level e IVs para cálculo correto
+    // Inicializa Level e IVs para cálculo correto
     const encounterLevel = getRandomLevel(1, 50); // Nível aleatório de 1 a 50
     const encounterIVs = { atk: getRandomIV(), def: getRandomIV(), sta: getRandomIV() };
 
@@ -310,55 +336,57 @@ function calcCP(poke) {
         return 10;
     }
 
+    // CORREÇÃO: Garante que os stats base estejam presentes. Se estiverem faltando, 
+    // é porque o JSON do Venusaur está errado, o que forçaria a um CP baixo.
     const baseAtk = poke.stats?.atk || 100;
     const baseDef = poke.stats?.def || 100;
     const baseSta = poke.stats?.sta || 100;
     
-    // Usa IVs existentes ou gera aleatoriamente (que deve ser feito em explore() agora)
     const atkIV = poke.iv?.atk !== undefined ? poke.iv.atk : getRandomIV();
     const defIV = poke.iv?.def !== undefined ? poke.iv.def : getRandomIV();
     const staIV = poke.iv?.sta !== undefined ? poke.iv.sta : getRandomIV();
     
-    // Garante que o IV esteja no objeto, caso tenha sido gerado aqui (fallback)
     if (!poke.iv) {
         poke.iv = { atk: atkIV, def: defIV, sta: staIV };
     }
     
-    // Nível base é o que está no objeto (e já foi gerado em explore())
-    let level = poke.level || 1;
+    let level = poke.baseLevel || poke.level || 1;
     
-    // Aplica modificadores de nível (para formas especiais, como você já tinha)
+    // Aplica modificadores de nível (para formas especiais)
     if (poke.tempForm) {
         if (poke.tempForm === 'mega') level = 110;
         else if (poke.tempForm === 'gmax') level = 105;
         else if (poke.tempForm === 'dynamax') level = 102;
     }
     
-    level = Math.max(1, Math.min(110, level));
+    level = Math.max(1, level); // Garante nível mínimo 1
     
     let CPM;
-    if (level <= 50) { // Usa a tabela para níveis 1-50
-        CPM = state.cpmTable[level.toString()];
-    } else if (level <= 100) { // Extrapola para níveis 51-100 (se você for usar)
-        CPM = state.cpmTable["50"] + ((level - 50) * 0.007); // Incremento aproximado
-    } else { // Extrapola para níveis especiais > 100
-        CPM = state.cpmTable["50"] + ((level - 50) * 0.007); 
+    const levelKey = Math.floor(level).toString();
+
+    if (level <= 100) { 
+        // Busca direta na tabela para níveis 1 a 100 (chaves inteiras)
+        CPM = state.cpmTable[levelKey];
+    } else { 
+        // Extrapolação para níveis especiais > 100 (usando o CPM de 100 como base)
+        const cpm100 = state.cpmTable["100"] || 1.404530; 
+        const increment = 0.0087; // Valor de incremento aproximado entre 50 e 100
+        CPM = cpm100 + ((level - 100) * increment);
     }
 
-    // CORREÇÃO CRUCIAL: Se CPM for indefinido (NaN), defina um valor seguro
-    if (CPM === undefined || isNaN(CPM)) {
-        console.error(`CPM indefinido para o nível ${level}. Usando valor padrão.`);
-        CPM = state.cpmTable["1"] || 0.094; // Fallback para Nível 1
+    // Fallback de segurança caso CPM ainda esteja indefinido ou seja 0
+    if (CPM === undefined || isNaN(CPM) || CPM === 0) {
+        console.error(`CPM indefinido (ou zero) para o nível ${level}. Usando valor de Nível 1.`);
+        CPM = state.cpmTable["1"] || 0.094;
     }
     
     const totalAtk = baseAtk + atkIV;
     const totalDef = baseDef + defIV;
     const totalSta = baseSta + staIV;
     
-    // CORREÇÃO DE FÓRMULA: Fórmula padrão do Pokémon GO
-    // CP = FLOOR((BaseAtk + IVAtk) * SQRT(BaseDef + IVDef) * SQRT(BaseSta + IVSta) * CPM^2 / 10)
+    // Fórmula de CP
     const cp = Math.floor(
-        (totalAtk * Math.sqrt(totalDef + defIV) * Math.sqrt(totalSta + staIV) * Math.pow(CPM, 2)) / 10
+        (totalAtk * Math.sqrt(totalDef) * Math.sqrt(totalSta) * Math.pow(CPM, 2)) / 10
     );
     
     return Math.max(10, cp);
@@ -598,7 +626,7 @@ function activateDynamax(idx) {
     
     p.tempForm = 'dynamax';
     p.level = 102;
-    // CORREÇÃO: Usa o sta original para calcular o novo (evita multiplicação infinita)
+    // Usa o sta original para calcular o novo (evita multiplicação infinita)
     p.stats.sta = (p.originalData.sta || p.stats.sta) * 2; 
     p.cp = calcCP(p);
     

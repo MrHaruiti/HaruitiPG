@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-7 - COMPLETO C/ TRANSFERÊNCIA E LÓGICA DE DOCES
-console.log(">>> GAMEJS LOADED: v2025-10-04-7 - COMPLETO C/ TRANSFERÊNCIA E LÓGICA DE DOCES");
+// >>> GAMEJS LOADED: v2025-10-04-8 - COMPLETO C/ MEGA EVOLUÇÃO CORRIGIDA
+console.log(">>> GAMEJS LOADED: v2025-10-04-8 - COMPLETO C/ MEGA EVOLUÇÃO CORRIGIDA");
 
 // =========================
 // ESTADO GLOBAL
@@ -437,7 +437,7 @@ function tryCatch() {
           <h3>🎉 Capturado com sucesso!</h3>
           <p>${caught.name} ${caught.shiny ? '⭐' : ''} (CP ${caught.cp}) adicionado à coleção</p>
           <p>+${candyAmount} doces de ${family}</p>
-          <button onclick="explore()" style="background:#4CAF50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;">Explorar Mais</button>
+          <button onclick="explore()" style="background:#4CAF50; color:white; padding:10px 20px; border:none; border-radius:5px; cursor:pointer; font-size:16px;">Explorar Mais</button>
         </div>`;
         renderCollection();
         renderItems();
@@ -564,14 +564,13 @@ function transferPokemon(idx) {
         return;
     }
     
-    // 1. Determina a família de doces (usando a lógica mais robusta)
+    // 1. Determina a família de doces 
     const family = getCandyFamily(p); 
 
     // 2. Adiciona o doce
     state.candies[family] = (state.candies[family] || 0) + 1;
 
     // 3. Remove o Pokémon da coleção (usa o índice)
-    // O splice altera o array original.
     state.collection.splice(idx, 1);
 
     // 4. Salva o estado e atualiza a interface
@@ -590,8 +589,17 @@ function transferPokemon(idx) {
 // =========================
 function activateMega(idx) {
     const p = state.collection[idx];
-    if (!p || (p.baseLevel || p.level) < 100) {
-        alert("Apenas Pokémon level 100 podem Mega Evoluir!");
+    if (!p) return;
+    
+    // 1. CHECAGEM DE NÍVEL
+    if ((p.baseLevel || p.level) < 100) {
+        alert("Apenas Pokémon nível 100 podem Mega Evoluir!");
+        return;
+    }
+    
+    // 2. CHECAGEM CRÍTICA: Apenas Formas Finais podem Mega Evoluir.
+    if (p.evolution && p.evolution.to) {
+        alert(`${p.name} ainda pode evoluir para ${p.evolution.to} e não pode Mega Evoluir!`);
         return;
     }
     
@@ -627,13 +635,20 @@ function activateMega(idx) {
     showDetails(idx);
 }
 
+
 function activateGmax(idx) {
     const p = state.collection[idx];
-    if (!p || (p.baseLevel || p.level) < 100) {
-        alert("Apenas Pokémon level 100 podem usar Gigantamax!");
+    if (!p) return;
+    
+    // 1. CHECAGEM DE NÍVEL
+    if ((p.baseLevel || p.level) < 100) {
+        alert("Apenas Pokémon nível 100 podem usar Gigantamax!");
         return;
     }
-    
+
+    // 2. CHECAGEM CRÍTICA: Apenas Formas Finais (ou as que tem a forma GMax) podem usar Gigantamax.
+    // É uma regra similar à Mega, mas alguns Pokémons de estágio intermediário podem ter G-Max. 
+    // Mantemos a regra se não houver um GmaxForm específico na Pokédex.
     const gmaxForm = state.pokedex.find(pk => 
         pk.base === p.base && pk.form === 'gmax'
     );
@@ -669,9 +684,11 @@ function activateGmax(idx) {
 function activateDynamax(idx) {
     const p = state.collection[idx];
     if (!p || (p.baseLevel || p.level) < 100) {
-        alert("Apenas Pokémon level 100 podem usar Dynamax!");
+        alert("Apenas Pokémon nível 100 podem usar Dynamax!");
         return;
     }
+    
+    // Dynamax é universal, não precisa checar a forma final.
     
     if (!p.originalData) {
         p.originalData = {

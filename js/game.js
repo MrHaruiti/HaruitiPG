@@ -1,5 +1,5 @@
-// >>> GAMEJS LOADED: v2025-10-04-3 - DATABASE FIX (Shiny + Click Forms)
-console.log(">>> GAMEJS LOADED: v2025-10-04-3 - DATABASE FIX");
+// >>> GAMEJS LOADED: v2025-10-04-5 - SYNTAX FIXED
+console.log(">>> GAMEJS LOADED: v2025-10-04-5 - SYNTAX FIXED");
 
 // =========================
 // ESTADO GLOBAL
@@ -9,39 +9,53 @@ let state = {
   collection: [],
   candies: {},
   items: {},
-  cpmTable: null
+  cpmTable: {
+    "0": 0.0, "1": 0.094, "2": 0.135137, "3": 0.166398, "4": 0.192651, "5": 0.215732,
+    "6": 0.236573, "7": 0.25572, "8": 0.27353, "9": 0.29025, "10": 0.306057,
+    "11": 0.321088, "12": 0.335445, "13": 0.349213, "14": 0.362457, "15": 0.375236,
+    "16": 0.387592, "17": 0.399567, "18": 0.411193, "19": 0.4225, "20": 0.432926,
+    "21": 0.443107, "22": 0.45306, "23": 0.462798, "24": 0.472336, "25": 0.481685,
+    "26": 0.490855, "27": 0.499858, "28": 0.508701, "29": 0.517394, "30": 0.525942,
+    "31": 0.534354, "32": 0.542635, "33": 0.550793, "34": 0.55883, "35": 0.566755,
+    "36": 0.574569, "37": 0.582278, "38": 0.589887, "39": 0.5974, "40": 0.604823,
+    "41": 0.612157, "42": 0.619404, "43": 0.626567, "44": 0.633649, "45": 0.640653,
+    "46": 0.64758, "47": 0.654435, "48": 0.661219, "49": 0.667934, "50": 0.674581,
+    "51": 0.694695, "52": 0.71481, "53": 0.734924, "54": 0.755039, "55": 0.775153,
+    "56": 0.795267, "57": 0.815382, "58": 0.835496, "59": 0.85561, "60": 0.875725,
+    "61": 0.895839, "62": 0.915954, "63": 0.936068, "64": 0.956182, "65": 0.976297,
+    "66": 0.996411, "67": 1.016525, "68": 1.03664, "69": 1.056754, "70": 1.076869,
+    "71": 1.096983, "72": 1.117097, "73": 1.137212, "74": 1.157326, "75": 1.17744,
+    "76": 1.197555, "77": 1.217669, "78": 1.237784, "79": 1.257898, "80": 1.278012,
+    "81": 1.298127, "82": 1.318241, "83": 1.338356, "84": 1.35847, "85": 1.378584,
+    "86": 1.398699, "87": 1.418813, "88": 1.438927, "89": 1.459042, "90": 1.479156,
+    "91": 1.499271, "92": 1.519385, "93": 1.539499, "94": 1.559614, "95": 1.579728,
+    "96": 1.599842, "97": 1.619957, "98": 1.640071, "99": 1.660186, "100": 1.6803
+  }
 };
 let currentEncounter = null;
 const shinyChance = 0.001;
 
+console.log("✅ Tabela CPM embutida carregada:", Object.keys(state.cpmTable).length, "níveis");
+
+// =========================
+// TABELA CPM EMBUTIDA
+// =========================
+state.cpmTable = {
+  "0": 0.0, "1": 0.094, "2": 0.135137, "3": 0.166398, "4": 0.192651, "5": 0.215732,
+  "6": 0.236573, "7": 0.25572, "8": 0.27353, "9": 0.29025, "10": 0.306057,
+  "11": 0.321088, "12": 0.335445, "13": 0.349213, "14": 0.362457, "15": 0.375
+
 // =========================
 // BOOT
 // =========================
-document.addEventListener("DOMContentLoaded", async () => {// Aguarda CPM carregar
+document.addEventListener("DOMContentLoaded", async () => {
   load();
-  await loadRegion("kanto"); // Aguarda região carregar
+  await loadRegion("kanto");
   showTab("explore");
   showSubTab("db-kanto");
   renderCollection();
   renderItems();
 });
-
-// =========================
-// CARREGAR TABELA CPM
-// =========================
-// =========================
-// CPM EMBUTIDA NO CÓDIGO
-// =========================
-state.cpmTable = {};
-for (let i = 1; i <= 100; i++) {
-  state.cpmTable[i] = 0.1 + (i / 100) * 1.9;
-}
-state.cpmTable[102] = 0.1 + (102 / 100) * 1.9; // Dynamax
-state.cpmTable[105] = 0.1 + (105 / 100) * 1.9; // Gmax
-state.cpmTable[110] = 0.1 + (110 / 100) * 1.9; // Mega
-    console.log("⚠️ Usando tabela CPM de fallback");
-  }
-}
 
 // =========================
 // PERSISTÊNCIA
@@ -108,7 +122,7 @@ async function loadRegion(region) {
   } catch {
     if (region === "kanto") {
       state.pokedex = [
-        { dex: 1, name: "Bulbasaur", form: "normal", rarity: "Comum", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png", baseCatch: 45, family: "bulbasaur", stats: {atk: 118, def: 111, sta: 128}, evolvesTo: "Ivysaur" }
+        { dex: 1, name: "Bulbasaur", form: "normal", rarity: "Comum", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png", baseCatch: 45, base: "Bulbasaur", stats: {atk: 118, def: 111, sta: 128}, evolution: {to: "Ivysaur", cost: 25} }
       ];
     }
   }
@@ -144,7 +158,7 @@ function renderPokedex(region) {
 }
 
 // =========================
-// MODAL - CORRIGIDO
+// MODAL
 // =========================
 function showAllForms(dex) {
   const modal = document.getElementById('detailModal');
@@ -152,7 +166,6 @@ function showAllForms(dex) {
   let forms = state.pokedex.filter(p => p.dex === dex);
   if (!forms.length) return;
 
-  // Remove duplicatas por nome (mantém só a primeira ocorrência)
   const seen = new Set();
   forms = forms.filter(f => {
     if (seen.has(f.name)) return false;
@@ -164,20 +177,17 @@ function showAllForms(dex) {
   const dImg = document.getElementById("dImg");
   const dInfo = document.getElementById("dInfo");
 
-  // Define a primeira forma como principal
   const mainForm = forms[0];
   dName.innerText = `${mainForm.name} - Todas as Formas`;
   dImg.src = mainForm.img || "";
   dInfo.innerHTML = "";
 
-  // Adiciona cada forma UMA vez (normal e shiny lado a lado)
   forms.forEach(f => {
     const row = document.createElement("div");
     row.style.display = "flex";
     row.style.alignItems = "center";
     row.style.marginBottom = "10px";
     
-    // Versão Normal
     const normalImg = document.createElement("img");
     normalImg.src = f.img;
     normalImg.width = 48;
@@ -188,9 +198,8 @@ function showAllForms(dex) {
     normalImg.style.borderRadius = "8px";
     normalImg.onclick = () => setMainForm(f, false);
     
-    // Versão Shiny (sempre aparece, mesmo que não tenha imgShiny ainda)
     const shinyImg = document.createElement("img");
-    shinyImg.src = f.imgShiny || f.img; // Usa imgShiny se existir, senão usa normal
+    shinyImg.src = f.imgShiny || f.img;
     shinyImg.width = 48;
     shinyImg.height = 48;
     shinyImg.style.marginRight = "10px";
@@ -216,11 +225,9 @@ function setMainForm(form, isShiny) {
   const dName = document.getElementById("dName");
   const dInfo = document.getElementById("dInfo");
 
-  // Atualiza imagem principal
   dImg.src = isShiny && form.imgShiny ? form.imgShiny : form.img;
   dName.innerText = form.name + (isShiny ? " ⭐ (Shiny)" : "");
   
-  // Atualiza informações
   const infoDiv = document.createElement("div");
   infoDiv.style.marginTop = "15px";
   infoDiv.style.padding = "10px";
@@ -232,7 +239,6 @@ function setMainForm(form, isShiny) {
     <p>Base: ${form.base || 'N/A'} ${form.evolution ? `(Evolui para: ${form.evolution.to} - ${form.evolution.cost} doces)` : ''}</p>
   `;
   
-  // Mantém a lista de formas, apenas adiciona as infos
   const existingInfo = dInfo.querySelector('div[style*="margin-top: 15px"]');
   if (existingInfo) existingInfo.remove();
   dInfo.appendChild(infoDiv);
@@ -252,10 +258,8 @@ function explore() {
     return;
   }
   
-  // Filtra formas que NÃO podem aparecer na natureza
   const wildPokemon = state.pokedex.filter(p => {
     const form = (p.form || 'normal').toLowerCase();
-    // Remove mega, gmax e dynamax da exploração
     return !form.includes('mega') && form !== 'gmax' && form !== 'gigantamax' && form !== 'dynamax';
   });
   
@@ -281,62 +285,50 @@ function explore() {
 }
 
 function calcCP(poke) {
-  // Aguarda tabela CPM estar carregada
   if (!state.cpmTable) {
     console.warn("Tabela CPM não carregada ainda");
     return 10;
   }
 
-  // Stats base
   const baseAtk = poke.stats?.atk || 100;
   const baseDef = poke.stats?.def || 100;
   const baseSta = poke.stats?.sta || 100;
   
-  // IVs (Individual Values) - valores aleatórios 0-15 se não existirem
   const atkIV = poke.iv?.atk !== undefined ? poke.iv.atk : Math.floor(Math.random() * 16);
   const defIV = poke.iv?.def !== undefined ? poke.iv.def : Math.floor(Math.random() * 16);
   const staIV = poke.iv?.sta !== undefined ? poke.iv.sta : Math.floor(Math.random() * 16);
   
-  // Armazena IVs no Pokémon se não existirem
   if (!poke.iv) {
     poke.iv = { atk: atkIV, def: defIV, sta: staIV };
   }
   
-  // Level do Pokémon (1-100 normal, ou temporário 102/105/110)
   let level = poke.level || 1;
   
-  // Aplica boost temporário baseado na forma
   if (poke.tempForm) {
     if (poke.tempForm === 'mega') level = 110;
     else if (poke.tempForm === 'gmax') level = 105;
     else if (poke.tempForm === 'dynamax') level = 102;
   }
   
-  // Limita level entre 1-110
   level = Math.max(1, Math.min(110, level));
   
-  // Busca CPM da tabela (se level > 100, extrapola linearmente)
   let CPM;
   if (level <= 100) {
     CPM = state.cpmTable[level.toString()] || state.cpmTable[Math.floor(level)];
   } else {
-    // Extrapolação linear para levels 101-110
     const cpm100 = state.cpmTable["100"];
-    const increment = 0.02; // Incremento estimado por level acima de 100
+    const increment = 0.02;
     CPM = cpm100 + ((level - 100) * increment);
   }
   
-  // Stats totais (base + IV)
   const totalAtk = baseAtk + atkIV;
   const totalDef = baseDef + defIV;
   const totalSta = baseSta + staIV;
   
-  // Fórmula oficial do Pokémon GO
   const cp = Math.floor(
     (totalAtk * Math.sqrt(totalDef) * Math.sqrt(totalSta) * Math.pow(CPM, 2)) / 10
   );
   
-  // CP mínimo é 10
   return Math.max(10, cp);
 }
 
@@ -352,29 +344,21 @@ function tryCatch() {
     state.collection.push(caught);
     const family = caught.base || caught.name.toLowerCase().replace(/\s+/g, "");
     
-    // Determina quantidade de doces baseado no estágio evolutivo
-    let candyAmount = 5; // Default: forma base
-    
-    // Verifica se este Pokémon pode evoluir
+    let candyAmount = 5;
     const canEvolve = caught.evolution && caught.evolution.to;
-    
-    // Verifica se algum Pokémon da mesma família evolui PARA este
     const isEvolution = state.pokedex.some(p => 
       p.base === caught.base && p.evolution && p.evolution.to === caught.name
     );
     
     if (canEvolve) {
-      // Pode evoluir = forma base ou intermediária
       if (isEvolution) {
-        candyAmount = 10; // É 1ª evolução E pode evoluir = intermediária
+        candyAmount = 10;
       } else {
-        candyAmount = 5; // É forma base
+        candyAmount = 5;
       }
     } else if (isEvolution) {
-      // Não pode evoluir MAS é resultado de evolução = forma final
       candyAmount = 15;
     } else {
-      // Não pode evoluir E não é resultado de evolução = estágio único (como Delibird)
       candyAmount = 5;
     }
     
@@ -458,7 +442,6 @@ function showDetails(idx) {
   dImg.src = p.img;
   dImg.alt = p.name;
   
-  // Mostra IVs se existirem
   const ivText = p.iv ? `IVs: ${p.iv.atk}/${p.iv.def}/${p.iv.sta}` : '';
   
   dInfo.innerHTML = `
@@ -486,7 +469,7 @@ function showDetails(idx) {
 }
 
 // =========================
-// FORMAS ESPECIAIS (LEVEL 100+)
+// FORMAS ESPECIAIS
 // =========================
 function activateMega(idx) {
   const p = state.collection[idx];
@@ -495,7 +478,6 @@ function activateMega(idx) {
     return;
   }
   
-  // Verifica se tem forma mega disponível
   const megaForm = state.pokedex.find(pk => 
     pk.base === p.base && (pk.form === 'mega' || pk.form === 'mega-x' || pk.form === 'mega-y')
   );
@@ -505,7 +487,6 @@ function activateMega(idx) {
     return;
   }
   
-  // Salva dados originais e aplica mega
   if (!p.originalData) {
     p.originalData = {
       name: p.name,
@@ -571,7 +552,6 @@ function activateDynamax(idx) {
     return;
   }
   
-  // Dynamax não muda aparência, só aumenta stats
   if (!p.originalData) {
     p.originalData = {
       stats: {...p.stats},
@@ -581,7 +561,6 @@ function activateDynamax(idx) {
   
   p.tempForm = 'dynamax';
   p.level = 102;
-  // Dynamax aumenta HP (sta) em 2x
   p.stats.sta = (p.originalData.stats.sta || p.stats.sta) * 2;
   p.cp = calcCP(p);
   
@@ -594,7 +573,6 @@ function deactivateSpecialForm(idx) {
   const p = state.collection[idx];
   if (!p || !p.tempForm) return;
   
-  // Restaura dados originais
   if (p.originalData) {
     if (p.originalData.name) p.name = p.originalData.name;
     if (p.originalData.img) p.img = p.originalData.img;
@@ -623,7 +601,6 @@ function trainPokemon(idx) {
     return;
   }
   
-  // Verifica level máximo (100 para treino normal)
   const currentLevel = p.baseLevel || p.level || 1;
   if (currentLevel >= 100) {
     alert("Este Pokémon já atingiu o level máximo (100)!");
@@ -631,8 +608,8 @@ function trainPokemon(idx) {
   }
   
   state.candies[family] -= 5;
-  p.baseLevel = currentLevel + 1;  // Armazena level real
-  p.level = p.baseLevel;  // Level atual (pode ser temporário com mega/gmax)
+  p.baseLevel = currentLevel + 1;
+  p.level = p.baseLevel;
   p.cp = calcCP(p);
   save();
   renderCollection();
